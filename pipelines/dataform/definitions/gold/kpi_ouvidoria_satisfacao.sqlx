@@ -1,0 +1,33 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_ouvidoria_satisfacao",
+  description: "Consolidação de Ouvidoria, Reclamações e Índice IASC de Satisfação do Cliente",
+  tags: ["gold", "ouvidoria", "iasc"],
+  assertions: {
+    nonNull: ["distribuidora"],
+    rowConditions: [
+      "score_iasc >= 0",
+      "score_iasc <= 100"
+    ]
+  }
+}
+
+SELECT
+  distribuidora,
+  data_referencia,
+  score_iasc,
+  ranking_iasc,
+  total_reclamacoes,
+  procedencia_pct,
+  tempo_medio_resolucao_dias,
+  cumprimento_sla_pct,
+  CASE
+    WHEN score_iasc >= 72.0 THEN "Alta Satisfação (Excelente)"
+    WHEN score_iasc >= 65.0 THEN "Satisfação Moderada"
+    ELSE "Baixa Satisfação (Alerta Regulatório)"
+  END AS classificacao_satisfacao
+FROM
+  ${ref("ouvidoria_reclamacoes")}
+ORDER BY
+  ranking_iasc ASC

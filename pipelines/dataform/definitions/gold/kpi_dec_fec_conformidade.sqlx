@@ -1,0 +1,71 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_dec_fec_conformidade",
+  description: "Indicadores executivos consolidados de DEC e FEC apurados vs limites ANEEL com status regulatório",
+  tags: ["gold", "qualidade", "aneel"],
+  assertions: {
+    nonNull: ["distribuidora", "data_referencia"],
+    rowConditions: [
+      "dec_apurado_horas >= 0",
+      "fec_apurado_vezes >= 0"
+    ]
+  }
+}
+
+WITH latest_records AS (
+  SELECT
+    data_referencia,
+    distribuidora,
+    nome_concessionaria,
+    sigla_uf,
+    dec_apurado_horas,
+    dec_limite_aneel_horas,
+    conformidade_dec,
+    fec_apurado_vezes,
+    fec_limite_aneel_vezes,
+    conformidade_fec,
+    ROW_NUMBER() OVER (
+      PARTITION BY distribuidora 
+      ORDER BY data_referencia DESC
+    ) as rn
+  FROM
+    ${ref("dec_fec_distribuidoras")}
+)
+
+SELECT
+  data_referencia,
+  distribuidora,
+  nome_concessionaria,
+  sigla_uf,
+  dec_apurado_horas,
+  dec_limite_aneel_horas,
+  ROUND((dec_apurado_horas - dec_limite_aneel_horas), 2) AS desvio_dec_horas,
+  ROUND(((dec_apurado_horas / NULLIF(dec_limite_aneel_horas, 0)) - 1.0) * 100, 1) AS percentual_ultrapassagem_dec,
+  conformidade_dec,
+  fec_apurado_vezes,
+  fec_limite_aneel_vezes,
+  ROUND((fec_apurado_vezes - fec_limite_aneel_vezes), 2) AS desvio_fec_vezes,
+  ROUND(((fec_apurado_vezes / NULLIF(fec_limite_aneel_vezes, 0)) - 1.0) * 100, 1) AS percentual_ultrapassagem_fec,
+  conformidade_fec,
+  CASE
+    WHEN conformidade_dec AND conformidade_fec THEN "Conforme"
+    WHEN NOT conformidade_dec AND NOT conformidade_fec THEN "Crítico (DEC e FEC)"
+    WHEN NOT conformidade_dec THEN "Atenção (DEC Ultrapassado)"
+    ELSE "Atenção (FEC Ultrapassado)"
+  END AS status_regulatorio,
+  -- Estimativa de compensação regulatória em R$ Milhões se ultrapassado o limite
+  ROUND(
+    CASE 
+      WHEN dec_apurado_horas > dec_limite_aneel_horas 
+      THEN (dec_apurado_horas - dec_limite_aneel_horas) * 4.5 
+      ELSE 0.0 
+    END, 2
+  ) AS compensacao_estimada_rs_mm,
+  RANK() OVER (ORDER BY dec_apurado_horas ASC) AS ranking_qualidade_dec
+FROM
+  latest_records
+WHERE
+  rn = 1
+ORDER BY
+  dec_apurado_horas ASC

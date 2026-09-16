@@ -1,0 +1,32 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_tarifas_ranking",
+  description: "Ranking e decomposição das tarifas homologadas (TUSD e TE) por distribuidora",
+  tags: ["gold", "tarifas", "proret"],
+  assertions: {
+    nonNull: ["distribuidora"],
+    rowConditions: [
+      "tarifa_b1_rs_kwh > 0"
+    ]
+  }
+}
+
+SELECT
+  distribuidora,
+  concessionaria,
+  uf,
+  resolucao_homologatoria,
+  data_vigencia,
+  tarifa_b1_rs_kwh,
+  tusd_rs_mwh,
+  te_rs_mwh,
+  ROUND((tusd_rs_mwh / (tusd_rs_mwh + te_rs_mwh)) * 100, 1) AS share_tusd_fio_pct,
+  ROUND((te_rs_mwh / (tusd_rs_mwh + te_rs_mwh)) * 100, 1) AS share_te_energia_pct,
+  wacc_regulatorio_pct,
+  fator_x_pct,
+  RANK() OVER (ORDER BY tarifa_b1_rs_kwh ASC) AS ranking_tarifa_mais_barata
+FROM
+  ${ref("tarifas_homologadas")}
+ORDER BY
+  tarifa_b1_rs_kwh ASC

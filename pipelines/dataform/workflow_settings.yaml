@@ -1,0 +1,4 @@
+defaultProject: "kpisetoreletrico"
+defaultDataset: "gold_kpis"
+defaultLocation: "us-central1"
+dataformCoreVersion: "3.0.0"

@@ -1,0 +1,52 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_mmgd_expansao_uf",
+  description: "Indicadores executivos agregados de Micro e Minigeração Distribuída por Estado",
+  tags: ["gold", "mmgd", "aneel"],
+  assertions: {
+    nonNull: ["sigla_uf"],
+    rowConditions: [
+      "potencia_instalada_mw >= 0",
+      "total_conexoes >= 0"
+    ]
+  }
+}
+
+WITH base_agg AS (
+  SELECT
+    sigla_uf,
+    COALESCE(subsistema, "SE_CO") AS subsistema,
+    MAX(data_referencia) AS ultima_data_referencia,
+    SUM(qtd_conexoes) AS total_conexoes,
+    ROUND(SUM(potencia_instalada_kw) / 1000.0, 2) AS potencia_instalada_mw,
+    -- Estimativa de energia autogerada mensal em GWh (fator de capacidade médio ~19%)
+    ROUND((SUM(potencia_instalada_kw) / 1000.0) * 720 * 0.19 / 1000.0, 2) AS energia_autogerada_gwh_mes
+  FROM
+    ${ref("mmgd_instalacoes")}
+  GROUP BY
+    sigla_uf, subsistema
+),
+totals AS (
+  SELECT
+    SUM(potencia_instalada_mw) AS total_mw_brasil,
+    SUM(total_conexoes) AS total_conexoes_brasil
+  FROM
+    base_agg
+)
+
+SELECT
+  b.sigla_uf,
+  b.subsistema,
+  b.ultima_data_referencia,
+  b.total_conexoes,
+  b.potencia_instalada_mw,
+  b.energia_autogerada_gwh_mes,
+  ROUND((b.potencia_instalada_mw / NULLIF(t.total_mw_brasil, 0)) * 100, 2) AS market_share_nacional_pct,
+  RANK() OVER (ORDER BY b.potencia_instalada_mw DESC) AS ranking_nacional_potencia
+FROM
+  base_agg b
+CROSS JOIN
+  totals t
+ORDER BY
+  b.potencia_instalada_mw DESC
