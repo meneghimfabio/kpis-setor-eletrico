@@ -66,7 +66,13 @@ class BigQueryManager:
             return cached_val
 
         # Obter dados base do seed como baseline
-        data = dict(SEED_DATA.get(domain, {}))
+        raw_seed = SEED_DATA.get(domain, {})
+        if isinstance(raw_seed, list):
+            data = list(raw_seed)
+            cache.set(cache_key, data)
+            return data
+
+        data = dict(raw_seed) if isinstance(raw_seed, dict) else {}
         source_mode = "seed_fallback"
 
         # Se o cliente BigQuery estiver ativo, sobrepõe com a Camada Gold ao vivo
