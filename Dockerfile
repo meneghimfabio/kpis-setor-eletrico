@@ -18,8 +18,9 @@ ENV PYTHONUNBUFFERED=1 \
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application code
+# Copy backend application code and pipelines
 COPY backend/ ./
+COPY pipelines/ /app/pipelines/
 
 # Copy compiled frontend SPA to static directory
 COPY --from=frontend-builder /build/dist /app/static

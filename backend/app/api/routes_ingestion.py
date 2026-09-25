@@ -145,3 +145,90 @@ def get_datalake_status():
 
     return status
 
+
+def run_datalake_master_pipeline():
+    """Executa a cadeia Medallion completa: Ingestao 4 dominios -> Gold -> Quality Check."""
+    from pipelines.ingestion.aneel_prodist_ingestor import run_prodist_pipeline
+    from pipelines.ingestion.aneel_mmgd_ingestor import run_mmgd_pipeline
+    from pipelines.ingestion.aneel_tarifas_ingestor import run_tarifas_pipeline
+    from pipelines.ingestion.aneel_ouvidoria_ingestor import run_ouvidoria_pipeline
+    from pipelines.dataform.run_transformations import run_gold_transformations, get_bigquery_client, PROJECT_ID
+    
+    results = {}
+    results["prodist"] = run_prodist_pipeline()
+    results["mmgd"] = run_mmgd_pipeline()
+    results["tarifas"] = run_tarifas_pipeline()
+    results["ouvidoria"] = run_ouvidoria_pipeline()
+    results["gold"] = run_gold_transformations()
+    
+    # Assertions de Qualidade
+    client = get_bigquery_client()
+    checks = [
+        ("kpi_dec_fec_conformidade", f"SELECT count(1) as total FROM `{PROJECT_ID}.gold_kpis.kpi_dec_fec_conformidade`"),
+        ("kpi_mmgd_expansao_uf", f"SELECT count(1) as total FROM `{PROJECT_ID}.gold_kpis.kpi_mmgd_expansao_uf`"),
+        ("kpi_tarifas_ranking", f"SELECT count(1) as total FROM `{PROJECT_ID}.gold_kpis.kpi_tarifas_ranking`"),
+        ("kpi_ouvidoria_satisfacao", f"SELECT count(1) as total FROM `{PROJECT_ID}.gold_kpis.kpi_ouvidoria_satisfacao`"),
+    ]
+    quality = {}
+    for name, query in checks:
+        try:
+            rows = list(client.query(query).result())
+            cnt = rows[0].total if rows else 0
+            quality[name] = cnt
+        except Exception as e:
+            quality[name] = f"error: {str(e)}"
+    results["quality_check"] = quality
+    return results
+
+
+@router.post("/datalake/run")
+def trigger_datalake_master(background_tasks: BackgroundTasks = None, async_mode: bool = False):
+    """
+    Dispara a orquestracao unificada do Data Lakehouse ANEEL:
+    Ingestao paralela dos 4 dominios (Bronze -> Silver), transformacao Gold e validacao de integridade.
+    Ideal para agendamento serverless via Google Cloud Scheduler.
+    """
+    if async_mode and background_tasks:
+        background_tasks.add_task(run_datalake_master_pipeline)
+        return {"status": "processing", "message": "Pipeline Data Lakehouse ANEEL iniciado em background."}
+    
+    try:
+        results = run_datalake_master_pipeline()
+        return {"status": "success", "message": "Pipeline Data Lakehouse ANEEL concluido com sucesso.", "results": results}
+    except Exception as e:
+        return {"status": "error", "message": f"Erro na execucao do pipeline: {str(e)}"}
+
+
+@router.post("/datalake/prodist/run")
+def trigger_datalake_prodist():
+    """Ingestao especifica de PRODIST DEC/FEC (Bronze -> Silver)."""
+    from pipelines.ingestion.aneel_prodist_ingestor import run_prodist_pipeline
+    return run_prodist_pipeline()
+
+
+@router.post("/datalake/mmgd/run")
+def trigger_datalake_mmgd():
+    """Ingestao especifica de MMGD (Bronze -> Silver)."""
+    from pipelines.ingestion.aneel_mmgd_ingestor import run_mmgd_pipeline
+    return run_mmgd_pipeline()
+
+
+@router.post("/datalake/tarifas/run")
+def trigger_datalake_tarifas():
+    """Ingestao especifica de Tarifas Homologadas (Bronze -> Silver)."""
+    from pipelines.ingestion.aneel_tarifas_ingestor import run_tarifas_pipeline
+    return run_tarifas_pipeline()
+
+
+@router.post("/datalake/ouvidoria/run")
+def trigger_datalake_ouvidoria():
+    """Ingestao especifica de Ouvidoria & IASC (Bronze -> Silver)."""
+    from pipelines.ingestion.aneel_ouvidoria_ingestor import run_ouvidoria_pipeline
+    return run_ouvidoria_pipeline()
+
+
+@router.post("/datalake/gold/run")
+def trigger_datalake_gold():
+    """Transformacao analitica das tabelas Silver para a Camada Gold."""
+    from pipelines.dataform.run_transformations import run_gold_transformations
+    return run_gold_transformations()

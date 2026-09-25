@@ -179,9 +179,22 @@ Para ativar ou ajustar a capacidade de aceleração em memória:
 
 ---
 
-## ☁️ Deploy no Cloud Composer (Apache Airflow)
+## ☁️ Opções de Orquestração (Airflow vs Serverless)
 
-Quando desejar provisionar o ambiente Composer e sincronizar as DAGs:
+### Opção 1: Google Cloud Scheduler (Serverless & Custo Zero - Recomendado)
+Dispara as etapas do Data Lakehouse diretamente na aplicação Cloud Run com autenticação OIDC via cron:
+```bash
+./pipelines/infrastructure/setup_cloud_scheduler.sh
+```
+Agendamentos provisionados no fuso `America/Sao_Paulo`:
+- **`aneel-datalake-master-diario`**: Diário às 23:00 (`0 23 * * *`) ➔ `/api/v1/ingestion/datalake/run`
+- **`aneel-mmgd-semanal`**: Segundas às 00:00 (`0 0 * * 1`) ➔ `/api/v1/ingestion/datalake/mmgd/run`
+- **`aneel-tarifas-mensal`**: Dia 01 às 02:00 (`0 2 1 * *`) ➔ `/api/v1/ingestion/datalake/tarifas/run`
+- **`aneel-prodist-mensal`**: Dia 05 às 01:00 (`0 1 5 * *`) ➔ `/api/v1/ingestion/datalake/prodist/run`
+- **`aneel-ouvidoria-mensal`**: Dia 10 às 03:00 (`0 3 10 * *`) ➔ `/api/v1/ingestion/datalake/ouvidoria/run`
+
+### Opção 2: Cloud Composer 3 (Apache Airflow Gerenciado)
+Para ambientes corporativos que exigem interface Airflow UI nativa com monitoramento de nós:
 ```bash
 ./pipelines/infrastructure/setup_composer_env.sh
 ```
