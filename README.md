@@ -25,6 +25,8 @@ A aplicação entrega uma interface responsiva e moderna desenvolvida em **React
 
 ## 🏛️ Arquitetura da Solução
 
+> 📐 **Diagrama de Arquitetura Oficial no Draw.io:** O diagrama completo em formato editável está disponível em [`docs/architecture.drawio`](docs/architecture.drawio). A documentação detalhada de cada bloco e matriz IAM está em [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ```mermaid
 flowchart TD
     subgraph FONTES["Fontes de Dados Abertos Oficiais"]

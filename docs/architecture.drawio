@@ -1,0 +1,291 @@
+<mxfile host="app.diagrams.net" modified="2026-09-25T19:00:00.000Z" agent="Jetski" version="24.0.0">
+  <diagram name="Arquitetura-End-to-End-GCP" id="aneel-lakehouse-architecture">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" background="#F8FAFC">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ================= HEADER BANNER ================= -->
+        <mxCell id="header_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#0F172A;shadow=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="30" y="20" width="1860" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="header_title" value="⚡ PAINEL DO SETOR ELÉTRICO BRASILEIRO — ARQUITETURA END-TO-END NO GOOGLE CLOUD PLATFORM" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="60" y="32" width="1150" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="header_subtitle" value="Data Lakehouse Medallion ANEEL/ONS/CCEE (Bronze GCS ➔ Silver BQ ➔ Gold BQ + BI Engine) | Orquestração Serverless Cloud Scheduler (Custo Zero) | Cloud Run (FastAPI + React)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#94A3B8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="65" width="1200" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="header_badge_project" value="GCP: kpisetoreletrico&#xa;Região: us-central1&#xa;Status: Produção Ativa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#334155;fontColor=#38BDF8;fontSize=11;align=center;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1680" y="32" width="180" height="65" as="geometry"/>
+        </mxCell>
+
+        <!-- ================= SWIMLANE 1: FONTES EXTERNAS ================= -->
+        <mxCell id="lane1_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;shadow=1;arcSize=2;" vertex="1" parent="1">
+          <mxGeometry x="30" y="130" width="280" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane1_title" value="1. FONTES EXTERNAS DE DADOS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#475569;strokeColor=#334155;fontColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="140" width="260" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Fontes ANEEL -->
+        <mxCell id="src_aneel_prodist" value="&lt;b&gt;ANEEL: PRODIST Módulo 8&lt;/b&gt;&lt;br/&gt;• DEC e FEC de Distribuição&lt;br/&gt;• Limites Regulatórios Anuais&lt;br/&gt;• Compensações Financeiras (R$)&lt;br/&gt;&lt;i&gt;Formato: Parquet Oficial (28.8 MB)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="195" width="250" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_aneel_mmgd" value="&lt;b&gt;ANEEL: SISGD (Lei 14.300)&lt;/b&gt;&lt;br/&gt;• Micro e Minigeração Distribuída&lt;br/&gt;• Potência Instalada (kW/MW)&lt;br/&gt;• Fonte Solar Fotovoltaica / UFs&lt;br/&gt;&lt;i&gt;Formato: Parquet Oficial (100.7 MB)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="305" width="250" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_aneel_tarifas" value="&lt;b&gt;ANEEL: PRORET (Tarifas)&lt;/b&gt;&lt;br/&gt;• Tarifas Homologadas TE e TUSD&lt;br/&gt;• Classes B1 (Residencial), B3, A4&lt;br/&gt;• 103 Distribuidoras Concessionárias&lt;br/&gt;&lt;i&gt;Formato: CSV Oficial (84.9 MB)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="415" width="250" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_aneel_ouvidoria" value="&lt;b&gt;ANEEL: Ouvidoria &amp; IASC&lt;/b&gt;&lt;br/&gt;• Reclamações de Nível 2 / Prazos&lt;br/&gt;• Índice de Satisfação do Consumidor&lt;br/&gt;• Prêmios de Qualidade IASC&lt;br/&gt;&lt;i&gt;Formato: Parquet &amp; CSV (28.6 MB)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="525" width="250" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Fontes ONS & CCEE -->
+        <mxCell id="src_ons" value="&lt;b&gt;ONS: Operação do SIN&lt;/b&gt;&lt;br/&gt;• EAR (Energia Armazenada %)&lt;br/&gt;• ENA (% MLT por Subsistema)&lt;br/&gt;• Custo Marginal de Operação (CMO)&lt;br/&gt;• Carga e Geração Hidro/Térmica" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="635" width="250" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_ccee" value="&lt;b&gt;CCEE: Mercado de Energia&lt;/b&gt;&lt;br/&gt;• PLD Horário (SE/CO, S, NE, N)&lt;br/&gt;• GSF Hidrológico / Risco Hidráulico&lt;br/&gt;• Encargos de Serviço do Sistema (ESS)&lt;br/&gt;• Bandeiras Tarifárias Mensais" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="745" width="250" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="src_protocol" value="&lt;b&gt;Protocolos de Extração:&lt;/b&gt;&lt;br/&gt;HTTP/HTTPS REST APIs &amp; CKAN Portal&lt;br/&gt;User-Agent: &lt;i&gt;PainelSetorEletrico/1.0&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#CBD5E1;fontSize=10;fontColor=#475569;align=center;" vertex="1" parent="1">
+          <mxGeometry x="45" y="855" width="250" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ================= SWIMLANE 2: INGESTÃO & ORQUESTRAÇÃO ================= -->
+        <mxCell id="lane2_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;shadow=1;arcSize=2;" vertex="1" parent="1">
+          <mxGeometry x="340" y="130" width="340" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane2_title" value="2. INGESTÃO &amp; ORQUESTRAÇÃO" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0284C7;strokeColor=#0369A1;fontColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="350" y="140" width="320" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Cloud Scheduler Container (Ativo - Custo Zero) -->
+        <mxCell id="sched_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="355" y="195" width="310" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="sched_badge" value="★ ORQUESTRADOR ATIVO (CUSTO ZERO / FINOPS)&#xa;Google Cloud Scheduler (Serverless Cron)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16A34A;strokeColor=#15803D;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="205" width="290" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="job1" value="&lt;b&gt;aneel-datalake-master-diario&lt;/b&gt;&lt;br/&gt;• Cron: &lt;code&gt;0 23 * * *&lt;/code&gt; (23:00 BRT Diário)&lt;br/&gt;• Endpoint: &lt;code&gt;/api/v1/ingestion/datalake/run&lt;/code&gt;&lt;br/&gt;• Executa: Ingestão 4 domínios ➔ Gold ➔ Quality" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#86EFAC;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="365" y="250" width="290" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="job2" value="&lt;b&gt;aneel-mmgd-semanal&lt;/b&gt;&lt;br/&gt;• Cron: &lt;code&gt;0 0 * * 1&lt;/code&gt; (Segundas 00:00 BRT)&lt;br/&gt;• Endpoint: &lt;code&gt;/api/v1/ingestion/datalake/mmgd/run&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#86EFAC;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="365" y="320" width="290" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="job3" value="&lt;b&gt;aneel-tarifas-mensal&lt;/b&gt;&lt;br/&gt;• Cron: &lt;code&gt;0 2 1 * *&lt;/code&gt; (Dia 01 às 02:00 BRT)&lt;br/&gt;• Endpoint: &lt;code&gt;/api/v1/ingestion/datalake/tarifas/run&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#86EFAC;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="365" y="375" width="290" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="job4" value="&lt;b&gt;aneel-prodist-mensal&lt;/b&gt;&lt;br/&gt;• Cron: &lt;code&gt;0 1 5 * *&lt;/code&gt; (Dia 05 às 01:00 BRT)&lt;br/&gt;• Endpoint: &lt;code&gt;/api/v1/ingestion/datalake/prodist/run&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#86EFAC;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="365" y="430" width="290" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="job5" value="&lt;b&gt;aneel-ouvidoria-mensal&lt;/b&gt;&lt;br/&gt;• Cron: &lt;code&gt;0 3 10 * *&lt;/code&gt; (Dia 10 às 03:00 BRT)&lt;br/&gt;• Endpoint: &lt;code&gt;/api/v1/ingestion/datalake/ouvidoria/run&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#86EFAC;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="365" y="485" width="290" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="sched_auth" value="Segurança: OIDC Token via SA 623774526601-compute" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#22C55E;fontColor=#166534;fontSize=9;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="540" width="290" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- Ingestor Engine Interno -->
+        <mxCell id="ingestor_engine" value="&lt;b&gt;Motor de Ingestão Python (pipelines/ingestion)&lt;/b&gt;&lt;br/&gt;• Streaming Download HTTP &amp; Fallbacks Curados&lt;br/&gt;• Pandas / PyArrow Engine &amp; Deduplicação (PKs)&lt;br/&gt;• Tipagem Estrita e Sanitização de Tipos de Dados&lt;br/&gt;• Upload Nativo GCS (google-cloud-storage SDK)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="355" y="595" width="310" height="85" as="geometry"/>
+        </mxCell>
+
+        <!-- Cloud Composer (Opção Enterprise Tracejada) -->
+        <mxCell id="composer_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=2;strokeDashed=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="355" y="700" width="310" height="205" as="geometry"/>
+        </mxCell>
+        <mxCell id="composer_badge" value="⚡ OPÇÃO ENTERPRISE (OPCIONAL)&#xa;Cloud Composer 3 (Apache Airflow)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9333EA;strokeColor=#7E22CE;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="710" width="290" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="composer_desc" value="• &lt;b&gt;dag_aneel_datalake_master.py&lt;/b&gt; (Diário 02:00 UTC)&#xa;• 4 DAGs dedicadas por domínio regulatório&#xa;• UI Nativa Airflow, Gantt Chart &amp; Task Retries&#xa;• Provisionável via &lt;code&gt;setup_composer_env.sh&lt;/code&gt;&#xa;• Custo estimado: ~$200/mês (cluster GKE 24/7)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D8B4FE;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="365" y="750" width="290" height="95" as="geometry"/>
+        </mxCell>
+        <mxCell id="composer_note" value="Pronto para deploy corporativo sob demanda" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=9;fontColor=#6B21A8;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="365" y="860" width="290" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ================= SWIMLANE 3: DATA LAKEHOUSE MEDALLION ================= -->
+        <mxCell id="lane3_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;shadow=1;arcSize=2;" vertex="1" parent="1">
+          <mxGeometry x="710" y="130" width="380" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane3_title" value="3. DATA LAKEHOUSE MEDALLION (GCP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563EB;strokeColor=#1D4ED8;fontColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="140" width="360" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- BRONZE LAYER (GCS) -->
+        <mxCell id="bronze_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#F59E0B;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="725" y="195" width="350" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="bronze_title" value="CAMADA BRONZE (Google Cloud Storage)&#xa;Bucket: gs://kpisetoreletrico-datalake-bronze" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F59E0B;strokeColor=#D97706;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="735" y="205" width="330" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="bronze_items" value="• &lt;code&gt;aneel/prodist/ano=YYYY/mes=MM/indicadores_raw.parquet&lt;/code&gt; (28.8 MB)&#xa;• &lt;code&gt;aneel/mmgd/ano=YYYY/mes=MM/empreendimentos_raw.parquet&lt;/code&gt; (100.7 MB)&#xa;• &lt;code&gt;aneel/tarifas_proret/.../tarifas_homologadas_raw.csv&lt;/code&gt; (84.9 MB)&#xa;• &lt;code&gt;aneel/ouvidoria_iasc/.../manifestacoes_e_iasc_raw.parquet&lt;/code&gt;&#xa;Ciclo de Vida: Retenção Standard ➔ Nearline 30d ➔ Coldline 90d" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FDE68A;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="735" y="248" width="330" height="92" as="geometry"/>
+        </mxCell>
+
+        <!-- SILVER LAYER (BigQuery aneel_silver) -->
+        <mxCell id="silver_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="725" y="370" width="350" height="235" as="geometry"/>
+        </mxCell>
+        <mxCell id="silver_title" value="CAMADA SILVER (Google BigQuery)&#xa;Dataset: kpisetoreletrico.aneel_silver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#64748B;strokeColor=#475569;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="735" y="380" width="330" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="silver_items" value="&lt;b&gt;dec_fec_distribuidoras&lt;/b&gt; (340 concessionárias)&#xa;• Particionado por &lt;code&gt;data_referencia&lt;/code&gt;, Cluster: &lt;code&gt;distribuidora&lt;/code&gt;&#xa;• Carga via MERGE incremental com deduplicação&#xa;&lt;b&gt;mmgd_instalacoes&lt;/b&gt; (203+ usinas amostradas / 27 UFs)&#xa;• Particionado por &lt;code&gt;data_conexao&lt;/code&gt;, Cluster: &lt;code&gt;sig_uf, sig_modalidade&lt;/code&gt;&#xa;&lt;b&gt;tarifas_homologadas&lt;/b&gt; (103 distribuidoras)&#xa;• Particionado por &lt;code&gt;ano_homologacao&lt;/code&gt;, Cluster: &lt;code&gt;sig_agente, classe&lt;/code&gt;&#xa;&lt;b&gt;ouvidoria_reclamacoes&lt;/b&gt;&#xa;• Particionado por &lt;code&gt;data_referencia&lt;/code&gt;, Cluster: &lt;code&gt;distribuidora&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="735" y="423" width="330" height="172" as="geometry"/>
+        </mxCell>
+
+        <!-- DATAFORM TRANSFORMATION ENGINE -->
+        <mxCell id="dataform_box" value="&lt;b&gt;Dataform SQLX Core (pipelines/dataform)&lt;/b&gt;&lt;br/&gt;Compilação SQLX, declaração de fontes e asserções de qualidade" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;fontColor=#991B1B;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="725" y="620" width="350" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- GOLD LAYER (BigQuery gold_kpis + BI ENGINE) -->
+        <mxCell id="gold_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEFCE8;strokeColor=#EAB308;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="725" y="680" width="350" height="235" as="geometry"/>
+        </mxCell>
+        <mxCell id="gold_title" value="CAMADA GOLD &amp; MODELO ANALÍTICO (BigQuery)&#xa;Dataset: kpisetoreletrico.gold_kpis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAB308;strokeColor=#CA8A04;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="735" y="690" width="330" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="gold_items" value="• &lt;b&gt;kpi_dec_fec_conformidade&lt;/b&gt;: DEC/FEC real vs limites ANEEL&#xa;• &lt;b&gt;kpi_mmgd_expansao_uf&lt;/b&gt;: Potência MW e ranking 27 UFs&#xa;• &lt;b&gt;kpi_tarifas_ranking&lt;/b&gt;: TE + TUSD (B1 Residencial &amp; A4)&#xa;• &lt;b&gt;kpi_ouvidoria_satisfacao&lt;/b&gt;: Índices IASC e SLAs de Nível 2&#xa;&lt;b&gt;Assertividade:&lt;/b&gt; Data Quality Gate (sanity check count &gt; 0)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FEF08A;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="735" y="733" width="330" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="bi_engine_badge" value="⚡ ACELERAÇÃO BIGQUERY BI ENGINE (2 GB MEMÓRIA)&#xa;Consultas SQL analíticas em sub-segundo (&lt; 200 ms)&#xa;Provisionado via setup_bigquery_bi_engine.sh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;fontColor=#1D4ED8;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="735" y="833" width="330" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- ================= SWIMLANE 4: APLICAÇÃO & SERVINDO (CLOUD RUN) ================= -->
+        <mxCell id="lane4_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;shadow=1;arcSize=2;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="130" width="340" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane4_title" value="4. SERVIÇOS &amp; COMPUTAÇÃO (CLOUD RUN)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4F46E5;strokeColor=#4338CA;fontColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="140" width="320" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Cloud Run Container Box -->
+        <mxCell id="cloudrun_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EEF2FF;strokeColor=#6366F1;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="195" width="320" height="520" as="geometry"/>
+        </mxCell>
+        <mxCell id="cloudrun_header" value="GOOGLE CLOUD RUN (SERVERLESS CONTAINER)&#xa;Serviço: kpis-setor-eletrico (us-central1)&#xa;Revisão: kpis-setor-eletrico-00002-z2f" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6366F1;strokeColor=#4F46E5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="205" width="300" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Cloud Run Internals: Backend -->
+        <mxCell id="backend_box" value="&lt;b&gt;Backend REST API (FastAPI 0.115)&lt;/b&gt;&lt;br/&gt;• Python 3.11 Runtime assíncrono (Uvicorn)&lt;br/&gt;• &lt;code&gt;/api/v1/distribuicao/*&lt;/code&gt; (DEC/FEC real vs limites)&lt;br/&gt;• &lt;code&gt;/api/v1/tarifas/*&lt;/code&gt; (Rankings TE/TUSD)&lt;br/&gt;• &lt;code&gt;/api/v1/simulador/*&lt;/code&gt; (Fórmula Revisão Tarifária)&lt;br/&gt;• &lt;code&gt;/api/v1/ingestion/datalake/status&lt;/code&gt; (Health Monitor)&lt;br/&gt;• &lt;code&gt;/api/v1/ingestion/datalake/run&lt;/code&gt; (Master Trigger)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C7D2FE;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="265" width="300" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Cloud Run Internals: Frontend SPA -->
+        <mxCell id="frontend_box" value="&lt;b&gt;Frontend Single Page Application (SPA)&lt;/b&gt;&lt;br/&gt;• React 18 + TypeScript + Vite + TailwindCSS&lt;br/&gt;• Biblioteca de Gráficos: Recharts &amp; Lucide Icons&lt;br/&gt;• Cockpit C-Level: DEC/FEC, MMGD, Tarifas, IASC&lt;br/&gt;• Filtros Reativos por UF, Concessionária e Tensão&lt;br/&gt;• Simulador Interativo de Faturas &amp; Economia GD&lt;br/&gt;• Servido estaticamente em &lt;code&gt;/app/static&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C7D2FE;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="395" width="300" height="115" as="geometry"/>
+        </mxCell>
+
+        <!-- Cloud Run Specs -->
+        <mxCell id="cloudrun_specs" value="Configurações do Container:&#xa;• CPU: 1 vCPU | Memória: 1 GiB | Timeout: 300s&#xa;• Concorrência: 80 requisições simultâneas&#xa;• Auto-scaling: 0 a N instâncias (Scale to Zero)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#A5B4FC;fontColor=#3730A3;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="520" width="300" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- URL Pública -->
+        <mxCell id="cloudrun_url" value="🔗 URL OFICIAL EM PRODUÇÃO:&#xa;https://kpis-setor-eletrico-623774526601.us-central1.run.app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4338CA;strokeColor=#312E81;fontColor=#FFFFFF;fontSize=9;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="590" width="300" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- DevOps & CI/CD Box -->
+        <mxCell id="cicd_box" value="&lt;b&gt;Pipeline de CI/CD &amp; Build (GCP)&lt;/b&gt;&lt;br/&gt;• Cloud Build (Dockerfile Multi-stage: Node.js 22 ➔ Python 3.11)&lt;br/&gt;• Artifact Registry: &lt;code&gt;gcr.io/kpisetoreletrico/kpis-setor-eletrico&lt;/code&gt;&lt;br/&gt;• Repositório GitHub: &lt;i&gt;meneghimfabio/kpis-setor-eletrico&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="735" width="320" height="75" as="geometry"/>
+        </mxCell>
+
+        <!-- ================= SWIMLANE 5: CONSUMIDORES & GOVERNANÇA ================= -->
+        <mxCell id="lane5_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;shadow=1;arcSize=2;" vertex="1" parent="1">
+          <mxGeometry x="1490" y="130" width="400" height="880" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane5_title" value="5. CONSUMIDORES, IAM &amp; GOVERNANÇA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F766E;strokeColor=#115E59;fontColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="140" width="380" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Stakeholders & Perfis de Consumo -->
+        <mxCell id="user_profiles" value="&lt;b&gt;Perfis de Stakeholders &amp; Consumidores&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;👔 &lt;b&gt;Diretoria Executiva / C-Level:&lt;/b&gt;&lt;br/&gt;• Cockpit executivo DEC/FEC e risco de multas regulatórias&lt;br/&gt;• Ranking tarifário residencial B1 e corporativo A4&lt;br/&gt;&lt;br/&gt;⚡ &lt;b&gt;Engenharia de Operação &amp; Distribuição:&lt;/b&gt;&lt;br/&gt;• Monitoramento de metas contratuais e perdas de energia&lt;br/&gt;• Acompanhamento da expansão da GD Solar (Lei 14.300)&lt;br/&gt;&lt;br/&gt;💼 &lt;b&gt;Gestores Comerciais / Mercado Livre:&lt;/b&gt;&lt;br/&gt;• Simulação de migração Cativo ➔ Livre (ACL)&lt;br/&gt;• Índices de reclamação e satisfação IASC por distribuidora" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#5EEAD4;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1505" y="195" width="370" height="235" as="geometry"/>
+        </mxCell>
+
+        <!-- Canais de Consumo -->
+        <mxCell id="client_channels" value="&lt;b&gt;Canais de Consumo &amp; Integração&lt;/b&gt;&lt;br/&gt;• &lt;b&gt;Web Browser HTTPS&lt;/b&gt; (Desktop, Tablet e Mobile)&lt;br/&gt;• &lt;b&gt;REST API JSON&lt;/b&gt; (Integrações ERP / Billing / Sistemas Legados)&lt;br/&gt;• &lt;b&gt;BI Externo&lt;/b&gt; (Looker Studio / Power BI via BigQuery Connector)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#99F6E4;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1505" y="445" width="370" height="75" as="geometry"/>
+        </mxCell>
+
+        <!-- Governança, Segurança e IAM -->
+        <mxCell id="iam_box" value="&lt;b&gt;Segurança, IAM &amp; Governança GCP&lt;/b&gt;&lt;br/&gt;• &lt;b&gt;Service Account:&lt;/b&gt; &lt;code&gt;623774526601-compute@developer...&lt;/code&gt;&lt;br/&gt;• &lt;b&gt;Princípio do Menor Privilégio (Least Privilege):&lt;/b&gt;&lt;br/&gt;  - &lt;code&gt;roles/bigquery.dataViewer&lt;/code&gt;&lt;br/&gt;  - &lt;code&gt;roles/bigquery.user&lt;/code&gt; (para execução de queries)&lt;br/&gt;  - &lt;code&gt;roles/storage.objectViewer&lt;/code&gt;&lt;br/&gt;• &lt;b&gt;Autenticação OIDC:&lt;/b&gt; Cloud Scheduler ➔ Cloud Run&lt;br/&gt;• &lt;b&gt;Observabilidade:&lt;/b&gt; Cloud Logging &amp; Cloud Monitoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1505" y="535" width="370" height="150" as="geometry"/>
+        </mxCell>
+
+        <!-- FinOps Summary Box -->
+        <mxCell id="finops_box" value="&lt;b&gt;💰 Resumo FinOps (Otimização de Custos)&lt;/b&gt;&lt;br/&gt;• Cloud Run: &lt;i&gt;R$ 0,00&lt;/i&gt; (dentro do free tier de 2M req/mês)&#xa;• Cloud Scheduler: &lt;i&gt;R$ 0,00&lt;/i&gt; (3 jobs grátis + $0.10/job)&#xa;• BigQuery Storage: &lt;i&gt;Centavos/mês&lt;/i&gt; (&lt; 1 GB total)&#xa;• BigQuery BI Engine: Aceleração in-memory de alta eficiência&#xa;&lt;b&gt;Custo Total da Infraestrutura: ~R$ 0,00 a R$ 5,00 / mês&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF9C3;strokeColor=#FACC15;fontColor=#713F12;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1505" y="700" width="370" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- ================= CONECTORES & FLUXOS DE DADOS ================= -->
+
+        <!-- 1. Fontes -> Motor de Ingestão -->
+        <mxCell id="flow_src_to_ingest" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="src_aneel_prodist" target="ingestor_engine">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow_src_to_ingest2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="src_aneel_tarifas" target="ingestor_engine">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 2. Scheduler -> Cloud Run (Trigger HTTP POST) -->
+        <mxCell id="flow_sched_to_run" value="HTTP POST + OIDC Token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#16A34A;strokeWidth=3;" edge="1" parent="1" source="sched_container" target="backend_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="385"/>
+              <mxPoint x="700" y="105"/>
+              <mxPoint x="1105" y="105"/>
+              <mxPoint x="1105" y="325"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. Ingestor -> Bronze GCS -->
+        <mxCell id="flow_ingest_to_bronze" value="Upload Parquet/CSV" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="1" source="ingestor_engine" target="bronze_box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 4. Bronze GCS -> Silver BigQuery -->
+        <mxCell id="flow_bronze_to_silver" value="Limpeza, Tipagem &amp; MERGE" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="bronze_box" target="silver_box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 5. Silver BigQuery -> Dataform -->
+        <mxCell id="flow_silver_to_dataform" value="Transformação SQLX" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#EF4444;strokeWidth=2;" edge="1" parent="1" source="silver_box" target="dataform_box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 6. Dataform -> Gold BigQuery -->
+        <mxCell id="flow_dataform_to_gold" value="Tabelas Analíticas de KPIs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#EAB308;strokeWidth=2;" edge="1" parent="1" source="dataform_box" target="gold_box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 7. Gold BigQuery (BI Engine) -> Cloud Run Backend -->
+        <mxCell id="flow_gold_to_backend" value="SQL Sub-segundo via BI Engine" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;strokeColor=#2563EB;strokeWidth=3;" edge="1" parent="1" source="gold_box" target="backend_box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 8. Cloud Run Backend -> Frontend SPA -->
+        <mxCell id="flow_backend_to_frontend" value="JSON REST API &amp; WebSocket" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6366F1;strokeWidth=2;" edge="1" parent="1" source="backend_box" target="frontend_box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 9. Cloud Run -> Clientes / Stakeholders -->
+        <mxCell id="flow_cloudrun_to_clients" value="HTTPS (TLS 1.3) / Web Dashboard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#0F766E;strokeWidth=3;" edge="1" parent="1" source="frontend_box" target="client_channels">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 10. Composer -> Ingestion (Alternativa Tracejada) -->
+        <mxCell id="flow_composer_to_ingest" value="PythonOperator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#9333EA;strokeWidth=1;strokeDashed=1;" edge="1" parent="1" source="composer_container" target="ingestor_engine">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
