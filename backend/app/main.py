@@ -66,7 +66,8 @@ if os.path.exists(STATIC_DIR):
     async def serve_spa(full_path: str):
         # Don't intercept API or health endpoints
         if full_path.startswith("api") or full_path.startswith("health") or full_path.startswith("docs") or full_path.startswith("openapi"):
-            return None
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
         file_path = os.path.join(STATIC_DIR, full_path)
         if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
             return FileResponse(file_path)
