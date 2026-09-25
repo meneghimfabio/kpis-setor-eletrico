@@ -72,11 +72,13 @@ pipelines/
 │   ├── aneel_tarifas_ingestor.py  # Ingestão de Tarifas Homologadas (PRORET)
 │   └── aneel_ouvidoria_ingestor.py# Ingestão de Ouvidoria e IASC
 ├── airflow/
+│   ├── requirements-composer.txt      # Dependências PyPI para o Cloud Composer
 │   └── dags/
-│       ├── dag_aneel_prodist_dec_fec.py # Orquestração Mensal PRODIST
-│       ├── dag_aneel_mmgd_expansao.py   # Orquestração Semanal MMGD
-│       ├── dag_aneel_tarifas_proret.py  # Orquestração Mensal Tarifas
-│       └── dag_aneel_ouvidoria_iasc.py  # Orquestração Mensal Ouvidoria
+│       ├── dag_aneel_datalake_master.py # Orquestração Diária Mestre (Cadeia Completa)
+│       ├── dag_aneel_mmgd_expansao.py   # Orquestração Semanal MMGD (Lei 14.300)
+│       ├── dag_aneel_tarifas_proret.py  # Orquestração Mensal Tarifas Homologadas
+│       ├── dag_aneel_prodist_dec_fec.py # Orquestração Mensal PRODIST DEC/FEC
+│       └── dag_aneel_ouvidoria_iasc.py  # Orquestração Mensal Ouvidoria & IASC
 └── dataform/
     ├── workflow_settings.yaml     # Configuração do projeto Dataform no GCP
     ├── run_transformations.py     # Executor de compilação Silver -> Gold
@@ -89,6 +91,18 @@ pipelines/
             ├── kpi_tarifas_ranking.sqlx      # Modelo Gold Tarifas
             └── kpi_ouvidoria_satisfacao.sqlx # Modelo Gold Ouvidoria
 ```
+
+---
+
+## ⏰ Tabela de Agendamento Automático (Airflow Cron)
+
+| DAG ID | Frequência | Cron Expression | Horário (UTC / BRT) | Propósito & Ação |
+| :--- | :--- | :--- | :--- | :--- |
+| **`dag_aneel_datalake_master`** | **Diário** | `0 2 * * *` | 02:00 UTC (23:00 BRT) | **Cadeia Completa**: Dispara a ingestão dos 4 domínios em paralelo, consolida a Gold e valida a qualidade dos dados. |
+| **`dag_aneel_mmgd_expansao`** | **Semanal** | `0 3 * * 1` | Seg 03:00 UTC (00:00 BRT) | Coleta novas conexões de autogeração solar no SISGD e atualiza o ranking das 27 UFs. |
+| **`dag_aneel_tarifas_proret`** | **Mensal** | `0 5 1 * *` | Dia 01 às 05:00 UTC | Baixa novas Resoluções Homologatórias de tarifas (B1/B3/A4) e atualiza o ranking de 103 distribuidoras. |
+| **`dag_aneel_prodist_dec_fec`** | **Mensal** | `0 4 5 * *` | Dia 05 às 04:00 UTC | Ingestão dos indicadores de continuidade e cálculo de compensações financeiras. |
+| **`dag_aneel_ouvidoria_iasc`** | **Mensal** | `0 6 10 * *` | Dia 10 às 06:00 UTC | Ingestão das reclamações de Nível 2 escaladas à ANEEL e notas do Prêmio IASC. |
 
 ---
 
