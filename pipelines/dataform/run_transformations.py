@@ -211,6 +211,142 @@ ORDER BY
   p.pld_rs_mwh DESC;
 """
 
+SQL_CVM_DRE = f"""
+CREATE OR REPLACE TABLE `{PROJECT_ID}.gold_kpis.kpi_financeiro_dre_empresas` AS
+SELECT
+  empresa,
+  ticker,
+  codigo_cvm,
+  cnpj,
+  segmento,
+  ano_referencia,
+  tipo_demonstrativo,
+  status_auditoria,
+  receita_liquida_rs_mm,
+  ebitda_rs_mm,
+  margem_ebitda_pct,
+  lucro_liquido_rs_mm,
+  divida_liquida_rs_mm,
+  capex_rs_mm,
+  alavancagem,
+  CURRENT_TIMESTAMP() AS data_processamento
+FROM
+  `{PROJECT_ID}.aneel_silver.cvm_dre_empresas`
+ORDER BY
+  receita_liquida_rs_mm DESC;
+"""
+
+SQL_SIN_RESUMO = f"""
+CREATE OR REPLACE TABLE `{PROJECT_ID}.gold_kpis.kpi_sin_operacao_resumo` AS
+WITH latest_ear AS (
+  SELECT
+    data_referencia,
+    subsistema,
+    ear_percentual,
+    ear_max_mwmes,
+    ear_atual_mwmes,
+    meta_seguranca_percentual,
+    status_criticidade as status_ear,
+    ROW_NUMBER() OVER (PARTITION BY subsistema ORDER BY data_referencia DESC) as rn
+  FROM
+    `{PROJECT_ID}.operacao_sin.ear_subsistemas`
+),
+latest_ena AS (
+  SELECT
+    data_referencia,
+    subsistema,
+    ena_mwmed,
+    ena_percentual_mlt,
+    classificacao_hidrologica,
+    ROW_NUMBER() OVER (PARTITION BY subsistema ORDER BY data_referencia DESC) as rn
+  FROM
+    `{PROJECT_ID}.operacao_sin.ena_historico`
+),
+latest_cmo AS (
+  SELECT
+    data_referencia,
+    subsistema,
+    cmo_rs_mwh as cmo_medio_rs_mwh,
+    despacho_termico_mw,
+    ROW_NUMBER() OVER (PARTITION BY subsistema ORDER BY data_referencia DESC) as rn
+  FROM
+    `{PROJECT_ID}.operacao_sin.cmo_horario_semanal`
+)
+SELECT
+  e.subsistema,
+  e.data_referencia,
+  e.ear_percentual,
+  e.ear_max_mwmes,
+  e.ear_atual_mwmes,
+  e.meta_seguranca_percentual,
+  ROUND((e.ear_percentual - e.meta_seguranca_percentual), 2) AS folga_seguranca_ear_pct,
+  e.status_ear,
+  COALESCE(n.ena_mwmed, 0.0) AS ena_mwmed,
+  COALESCE(n.ena_percentual_mlt, 100.0) AS ena_percentual_mlt,
+  COALESCE(n.classificacao_hidrologica, "Normal") AS classificacao_ena,
+  ROUND(COALESCE(c.cmo_medio_rs_mwh, 68.0), 2) AS cmo_medio_rs_mwh,
+  ROUND(COALESCE(c.despacho_termico_mw, 0.0), 1) AS despacho_termico_mw,
+  CASE
+    WHEN e.ear_percentual < e.meta_seguranca_percentual AND COALESCE(n.ena_percentual_mlt, 100.0) < 80.0 THEN "Alerta Crítico: Armazenamento e Afluência Insuficientes"
+    WHEN e.ear_percentual < e.meta_seguranca_percentual THEN "Atenção: Armazenamento Abaixo da Meta de Segurança"
+    WHEN COALESCE(n.ena_percentual_mlt, 100.0) < 75.0 THEN "Atenção: Afluência Severa (Seca Hidrológica)"
+    ELSE "Condição Favorável / Segurança Energética"
+  END AS status_seguranca_energetica
+FROM
+  (SELECT * FROM latest_ear WHERE rn = 1) e
+LEFT JOIN
+  (SELECT * FROM latest_ena WHERE rn = 1) n ON e.subsistema = n.subsistema
+LEFT JOIN
+  (SELECT * FROM latest_cmo WHERE rn = 1) c ON e.subsistema = c.subsistema
+ORDER BY
+  e.subsistema ASC;
+"""
+
+SQL_TRANSMISSAO = f"""
+CREATE OR REPLACE TABLE `{PROJECT_ID}.gold_kpis.kpi_transmissao_concessoes`
+PARTITION BY DATE_TRUNC(data_referencia, MONTH)
+CLUSTER BY sigla, status AS
+SELECT
+  concessionaria,
+  sigla,
+  holding,
+  ano_ciclo,
+  rap_homologada_rs_mm,
+  pvd_rs_mm,
+  pvd_sobre_rap_pct,
+  disponibilidade_pct,
+  ens_mwh,
+  extensao_km,
+  status,
+  RANK() OVER (ORDER BY pvd_sobre_rap_pct ASC) AS ranking_eficiencia,
+  data_referencia,
+  CURRENT_TIMESTAMP() AS data_processamento
+FROM
+  `{PROJECT_ID}.aneel_silver.desempenho_transmissao`;
+"""
+
+SQL_ATENDIMENTO_SLAS = f"""
+CREATE OR REPLACE TABLE `{PROJECT_ID}.gold_kpis.kpi_atendimento_slas_comerciais`
+PARTITION BY DATE_TRUNC(data_referencia, MONTH)
+CLUSTER BY sigla_indicador, status AS
+SELECT
+  servico,
+  sigla_indicador,
+  artigo_ren_1000,
+  unidade_sla,
+  sla_regulatorio_valor,
+  tempo_medio_real,
+  cumprimento_pct,
+  total_solicitacoes,
+  solicitacoes_violadas,
+  compensacao_paga_rs_mm,
+  status,
+  data_referencia,
+  CURRENT_TIMESTAMP() AS data_processamento
+FROM
+  `{PROJECT_ID}.aneel_silver.qualidade_atendimento_comercial`;
+"""
+
 def run_gold_transformations():
     client = get_bigquery_client()
     logger.info("=== Executando Transformações Silver -> Gold (Dataform / BigQuery) ===")
@@ -220,7 +356,11 @@ def run_gold_transformations():
         ("kpi_mmgd_expansao_uf", SQL_MMGD),
         ("kpi_tarifas_ranking", SQL_TARIFAS),
         ("kpi_ouvidoria_satisfacao", SQL_OUVIDORIA),
-        ("kpi_ccee_mercado_resumo", SQL_CCEE)
+        ("kpi_ccee_mercado_resumo", SQL_CCEE),
+        ("kpi_financeiro_dre_empresas", SQL_CVM_DRE),
+        ("kpi_sin_operacao_resumo", SQL_SIN_RESUMO),
+        ("kpi_transmissao_concessoes", SQL_TRANSMISSAO),
+        ("kpi_atendimento_slas_comerciais", SQL_ATENDIMENTO_SLAS)
     ]
     
     for name, sql in queries:

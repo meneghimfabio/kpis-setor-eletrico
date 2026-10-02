@@ -61,3 +61,19 @@ config {
   name: "curtailment_renovaveis",
   description: "Restrições de geração (curtailment) eólica e solar por subsistema"
 }
+
+config {
+  type: "declaration",
+  database: "kpisetoreletrico",
+  schema: "aneel_silver",
+  name: "desempenho_transmissao",
+  description: "Dados oficiais homologados de RAP e PVd das transmissoras (CKAN ANEEL)"
+}
+
+config {
+  type: "declaration",
+  database: "kpisetoreletrico",
+  schema: "aneel_silver",
+  name: "qualidade_atendimento_comercial",
+  description: "Qualidade do atendimento comercial e cumprimento de SLAs da REN 1.000/2021"
+}

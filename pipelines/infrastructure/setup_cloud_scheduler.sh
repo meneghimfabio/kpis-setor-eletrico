@@ -112,10 +112,38 @@ create_or_update_job \
     "/api/v1/ingestion/ccee/run" \
     "Atualização diária dos dados de Mercado CCEE e ONS (PLD, Curtailment, GSF, ESS)"
 
+# 4.7 CVM DREs Trimestral/Mensal: Demonstrativos Financeiros Auditados (DFP/ITR das 8 companhias abertas)
+create_or_update_job \
+    "cvm-dre-financeiro" \
+    "0 4 15 * *" \
+    "/api/v1/ingestion/cvm/run" \
+    "Ingestão e cálculo de KPIs financeiros auditados CVM (Receita, EBITDA, Margem, Lucro, Dívida Líquida e CAPEX das 8 companhias de energia)"
+
+# 4.8 Operação SIN & Hidrologia Diário: EAR, ENA e CMO do ONS (Todos os dias às 05:00 BRT)
+create_or_update_job \
+    "ons-sin-hidrologia-diario" \
+    "0 5 * * *" \
+    "/api/v1/ingestion/sin/run" \
+    "Ingestão diária da hidrologia e operação do SIN (EAR, ENA, CMO) e materialização da Camada Gold a partir dos Dados Abertos do ONS"
+
+# 4.9 Transmissão ANEEL Mensal: RAP Homologada e PVd das Concessionárias (Dia 12 às 04:00 BRT)
+create_or_update_job \
+    "aneel-transmissao-mensal" \
+    "0 4 12 * *" \
+    "/api/v1/ingestion/datalake/transmissao/run" \
+    "Atualização mensal do desempenho das concessionárias de transmissão ANEEL (RAP homologada e PVd reais)"
+
+# 4.10 Atendimento Comercial e SLAs REN 1.000/2021 Mensal (Dia 15 às 05:00 BRT)
+create_or_update_job \
+    "aneel-comercial-mensal" \
+    "0 5 15 * *" \
+    "/api/v1/ingestion/datalake/comercial/run" \
+    "Atualização mensal da qualidade do atendimento comercial, canais e cumprimento de SLAs da REN 1.000/2021 da ANEEL"
+
 echo ""
-echo "=== Todos os 6 Jobs do Cloud Scheduler foram configurados com sucesso! ==="
+echo "=== Todos os 10 Jobs do Cloud Scheduler foram configurados com sucesso! ==="
 echo "Para listar todos os agendamentos ativos:"
 echo "gcloud scheduler jobs list --location=$REGION --project=$PROJECT_ID"
 echo ""
-echo "Para testar manualmente o job CCEE imediatamente:"
-echo "gcloud scheduler jobs run ccee-mercado-diario --location=$REGION --project=$PROJECT_ID"
+echo "Para testar manualmente o job de Transmissão imediatamente:"
+echo "gcloud scheduler jobs run aneel-transmissao-mensal --location=$REGION --project=$PROJECT_ID"

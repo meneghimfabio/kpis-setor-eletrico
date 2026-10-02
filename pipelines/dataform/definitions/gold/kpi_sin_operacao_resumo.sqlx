@@ -1,0 +1,70 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_sin_operacao_resumo",
+  description: "Visão consolidada da Operação do Sistema Interligado Nacional (SIN) baseada em dados oficiais do ONS: EAR, ENA, CMO, folga de segurança e risco hidrológico por subsistema.",
+  tags: ["gold", "sin", "ons", "bi_engine"]
+}
+
+WITH latest_ear AS (
+  SELECT
+    data_referencia,
+    subsistema,
+    ear_percentual,
+    ear_max_mwmes,
+    ear_atual_mwmes,
+    meta_seguranca_percentual,
+    status_criticidade as status_ear,
+    ROW_NUMBER() OVER (PARTITION BY subsistema ORDER BY data_referencia DESC) as rn
+  FROM
+    `${ref("operacao_sin", "ear_subsistemas")}`
+),
+latest_ena AS (
+  SELECT
+    data_referencia,
+    subsistema,
+    ena_mwmed,
+    ena_percentual_mlt,
+    classificacao_hidrologica,
+    ROW_NUMBER() OVER (PARTITION BY subsistema ORDER BY data_referencia DESC) as rn
+  FROM
+    `${ref("operacao_sin", "ena_historico")}`
+),
+latest_cmo AS (
+  SELECT
+    data_referencia,
+    subsistema,
+    cmo_rs_mwh as cmo_medio_rs_mwh,
+    despacho_termico_mw,
+    ROW_NUMBER() OVER (PARTITION BY subsistema ORDER BY data_referencia DESC) as rn
+  FROM
+    `${ref("operacao_sin", "cmo_horario_semanal")}`
+)
+SELECT
+  e.subsistema,
+  e.data_referencia,
+  e.ear_percentual,
+  e.ear_max_mwmes,
+  e.ear_atual_mwmes,
+  e.meta_seguranca_percentual,
+  ROUND((e.ear_percentual - e.meta_seguranca_percentual), 2) AS folga_seguranca_ear_pct,
+  e.status_ear,
+  COALESCE(n.ena_mwmed, 0.0) AS ena_mwmed,
+  COALESCE(n.ena_percentual_mlt, 100.0) AS ena_percentual_mlt,
+  COALESCE(n.classificacao_hidrologica, "Normal") AS classificacao_ena,
+  ROUND(COALESCE(c.cmo_medio_rs_mwh, 68.0), 2) AS cmo_medio_rs_mwh,
+  ROUND(COALESCE(c.despacho_termico_mw, 0.0), 1) AS despacho_termico_mw,
+  CASE
+    WHEN e.ear_percentual < e.meta_seguranca_percentual AND COALESCE(n.ena_percentual_mlt, 100.0) < 80.0 THEN "Alerta Crítico: Armazenamento e Afluência Insuficientes"
+    WHEN e.ear_percentual < e.meta_seguranca_percentual THEN "Atenção: Armazenamento Abaixo da Meta de Segurança"
+    WHEN COALESCE(n.ena_percentual_mlt, 100.0) < 75.0 THEN "Atenção: Afluência Severa (Seca Hidrológica)"
+    ELSE "Condição Favorável / Segurança Energética"
+  END AS status_seguranca_energetica
+FROM
+  (SELECT * FROM latest_ear WHERE rn = 1) e
+LEFT JOIN
+  (SELECT * FROM latest_ena WHERE rn = 1) n ON e.subsistema = n.subsistema
+LEFT JOIN
+  (SELECT * FROM latest_cmo WHERE rn = 1) c ON e.subsistema = c.subsistema
+ORDER BY
+  e.subsistema ASC

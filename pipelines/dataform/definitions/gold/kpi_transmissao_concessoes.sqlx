@@ -1,0 +1,35 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_transmissao_concessoes",
+  description: "Desempenho operacional e regulatório das concessões de transmissão (RAP homologada vs PVd aplicada)",
+  tags: ["gold", "transmissao", "aneel", "pvd"],
+  assertions: {
+    nonNull: ["concessionaria", "sigla", "ano_ciclo"],
+    rowConditions: [
+      "rap_homologada_rs_mm >= 0",
+      "pvd_rs_mm >= 0",
+      "disponibilidade_pct >= 90.0"
+    ]
+  }
+}
+
+SELECT
+  concessionaria,
+  sigla,
+  holding,
+  ano_ciclo,
+  rap_homologada_rs_mm,
+  pvd_rs_mm,
+  pvd_sobre_rap_pct,
+  disponibilidade_pct,
+  ens_mwh,
+  extensao_km,
+  status,
+  RANK() OVER (ORDER BY pvd_sobre_rap_pct ASC) AS ranking_eficiencia,
+  data_referencia,
+  CURRENT_TIMESTAMP() AS data_processamento
+FROM
+  ${ref("desempenho_transmissao")}
+ORDER BY
+  ranking_eficiencia ASC

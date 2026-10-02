@@ -1,0 +1,33 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_atendimento_slas_comerciais",
+  description: "Cumprimento de prazos e SLAs dos serviços comerciais da Resolução Normativa ANEEL nº 1.000/2021",
+  tags: ["gold", "atendimento", "ren1000", "slas"],
+  assertions: {
+    nonNull: ["servico", "sigla_indicador", "artigo_ren_1000"],
+    rowConditions: [
+      "cumprimento_pct >= 0",
+      "cumprimento_pct <= 100"
+    ]
+  }
+}
+
+SELECT
+  servico,
+  sigla_indicador,
+  artigo_ren_1000,
+  unidade_sla,
+  sla_regulatorio_valor,
+  tempo_medio_real,
+  cumprimento_pct,
+  total_solicitacoes,
+  solicitacoes_violadas,
+  compensacao_paga_rs_mm,
+  status,
+  data_referencia,
+  CURRENT_TIMESTAMP() AS data_processamento
+FROM
+  ${ref("qualidade_atendimento_comercial")}
+ORDER BY
+  cumprimento_pct DESC

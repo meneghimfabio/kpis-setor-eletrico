@@ -60,49 +60,54 @@ Região: **`us-central1`**
 ## 📂 Estrutura de Pastas
 
 ```
-pipelines/
-├── infrastructure/
-│   ├── setup_gcs_buckets.sh       # Criação do bucket GCS Bronze e ciclo de vida
-│   ├── setup_bigquery_bi_engine.sh # Ativação da reserva de memória do BI Engine
-│   └── setup_composer_env.sh      # Provisionamento e deploy no Cloud Composer 3
-├── ingestion/
-│   ├── gcp_client.py              # Utilitário de autenticação e upload GCS/BQ
-│   ├── aneel_prodist_ingestor.py  # Ingestão de DEC/FEC (Parquet oficial)
-│   ├── aneel_mmgd_ingestor.py     # Ingestão de GD / SISGD (Lei 14.300)
-│   ├── aneel_tarifas_ingestor.py  # Ingestão de Tarifas Homologadas (PRORET)
-│   └── aneel_ouvidoria_ingestor.py# Ingestão de Ouvidoria e IASC
-├── airflow/
-│   ├── requirements-composer.txt      # Dependências PyPI para o Cloud Composer
-│   └── dags/
-│       ├── dag_aneel_datalake_master.py # Orquestração Diária Mestre (Cadeia Completa)
-│       ├── dag_aneel_mmgd_expansao.py   # Orquestração Semanal MMGD (Lei 14.300)
-│       ├── dag_aneel_tarifas_proret.py  # Orquestração Mensal Tarifas Homologadas
-│       ├── dag_aneel_prodist_dec_fec.py # Orquestração Mensal PRODIST DEC/FEC
-│       └── dag_aneel_ouvidoria_iasc.py  # Orquestração Mensal Ouvidoria & IASC
-└── dataform/
-    ├── workflow_settings.yaml     # Configuração do projeto Dataform no GCP
-    ├── run_transformations.py     # Executor de compilação Silver -> Gold
-    └── definitions/
-        ├── sources/
-        │   └── declarations_silver.sqlx # Mapeamento das fontes Silver
-        └── gold/
-            ├── kpi_dec_fec_conformidade.sqlx # Modelo Gold DEC/FEC
-            ├── kpi_mmgd_expansao_uf.sqlx     # Modelo Gold MMGD
-            ├── kpi_tarifas_ranking.sqlx      # Modelo Gold Tarifas
-            └── kpi_ouvidoria_satisfacao.sqlx # Modelo Gold Ouvidoria
-```
-
----
-
-## ⏰ Tabela de Agendamento Automático (Airflow Cron)
-
-| DAG ID | Frequência | Cron Expression | Horário (UTC / BRT) | Propósito & Ação |
-| :--- | :--- | :--- | :--- | :--- |
-| **`dag_aneel_datalake_master`** | **Diário** | `0 2 * * *` | 02:00 UTC (23:00 BRT) | **Cadeia Completa**: Dispara a ingestão dos 4 domínios em paralelo, consolida a Gold e valida a qualidade dos dados. |
-| **`dag_aneel_mmgd_expansao`** | **Semanal** | `0 3 * * 1` | Seg 03:00 UTC (00:00 BRT) | Coleta novas conexões de autogeração solar no SISGD e atualiza o ranking das 27 UFs. |
-| **`dag_aneel_tarifas_proret`** | **Mensal** | `0 5 1 * *` | Dia 01 às 05:00 UTC | Baixa novas Resoluções Homologatórias de tarifas (B1/B3/A4) e atualiza o ranking de 103 distribuidoras. |
-| **`dag_aneel_prodist_dec_fec`** | **Mensal** | `0 4 5 * *` | Dia 05 às 04:00 UTC | Ingestão dos indicadores de continuidade e cálculo de compensações financeiras. |
-| **`dag_aneel_ouvidoria_iasc`** | **Mensal** | `0 6 10 * *` | Dia 10 às 06:00 UTC | Ingestão das reclamações de Nível 2 escaladas à ANEEL e notas do Prêmio IASC. |
+ pipelines/
+ ├── infrastructure/
+ │   ├── setup_gcs_buckets.sh       # Criação do bucket GCS Bronze e ciclo de vida
+ │   ├── setup_bigquery_bi_engine.sh # Ativação da reserva de memória do BI Engine
+ │   ├── setup_cloud_scheduler.sh   # Configuração de 7 Jobs no Cloud Scheduler (Serverless)
+ │   └── setup_composer_env.sh      # Provisionamento e deploy no Cloud Composer 3
+ ├── ingestion/
+ │   ├── gcp_client.py              # Utilitário de autenticação e upload GCS/BQ
+ │   ├── cvm_dre_ingestor.py        # Ingestão de Demonstrativos Financeiros CVM (DFP/ITR)
+ │   ├── aneel_prodist_ingestor.py  # Ingestão de DEC/FEC (Parquet oficial)
+ │   ├── aneel_mmgd_ingestor.py     # Ingestão de GD / SISGD (Lei 14.300)
+ │   ├── aneel_tarifas_ingestor.py  # Ingestão de Tarifas Homologadas (PRORET)
+ │   └── aneel_ouvidoria_ingestor.py# Ingestão de Ouvidoria e IASC
+ ├── airflow/
+ │   ├── requirements-composer.txt      # Dependências PyPI para o Cloud Composer
+ │   └── dags/
+ │       ├── dag_aneel_datalake_master.py # Orquestração Diária Mestre (Cadeia Completa)
+ │       ├── dag_aneel_mmgd_expansao.py   # Orquestração Semanal MMGD (Lei 14.300)
+ │       ├── dag_aneel_tarifas_proret.py  # Orquestração Mensal Tarifas Homologadas
+ │       ├── dag_aneel_prodist_dec_fec.py # Orquestração Mensal PRODIST DEC/FEC
+ │       └── dag_aneel_ouvidoria_iasc.py  # Orquestração Mensal Ouvidoria & IASC
+ └── dataform/
+     ├── workflow_settings.yaml     # Configuração do projeto Dataform no GCP
+     ├── run_transformations.py     # Executor de compilação Silver -> Gold
+     └── definitions/
+         ├── sources/
+         │   └── declarations_silver.sqlx # Mapeamento das fontes Silver
+         └── gold/
+             ├── kpi_financeiro_dre_empresas # Modelo Gold CVM DREs Auditadas
+             ├── kpi_dec_fec_conformidade.sqlx # Modelo Gold DEC/FEC
+             ├── kpi_mmgd_expansao_uf.sqlx     # Modelo Gold MMGD
+             ├── kpi_tarifas_ranking.sqlx      # Modelo Gold Tarifas
+             └── kpi_ouvidoria_satisfacao.sqlx # Modelo Gold Ouvidoria
+ ```
+ 
+ ---
+ 
+ ## ⏰ Tabela de Agendamento Automático (Cloud Scheduler & Airflow Cron)
+ 
+ | Job / DAG ID | Frequência | Cron Expression | Horário (BRT) | Propósito & Ação |
+ | :--- | :--- | :--- | :--- | :--- |
+ | **`aneel-datalake-master-diario`** | **Diário** | `0 23 * * *` | 23:00 BRT | **Cadeia Completa**: Dispara a ingestão de 5 domínios (ANEEL + CVM), consolida a Gold e valida a integridade. |
+ | **`aneel-mmgd-semanal`** | **Semanal** | `0 0 * * 1` | Seg 00:00 BRT | Coleta novas conexões de autogeração solar no SISGD e atualiza o ranking das 27 UFs. |
+ | **`aneel-tarifas-mensal`** | **Mensal** | `0 2 1 * *` | Dia 01 às 02:00 BRT | Baixa novas Resoluções Homologatórias de tarifas (B1/B3/A4) e atualiza o ranking de distribuidoras. |
+ | **`aneel-prodist-mensal`** | **Mensal** | `0 1 5 * *` | Dia 05 às 01:00 BRT | Ingestão dos indicadores de continuidade e cálculo de compensações financeiras. |
+ | **`aneel-ouvidoria-mensal`** | **Mensal** | `0 3 10 * *` | Dia 10 às 03:00 BRT | Ingestão das reclamações de Nível 2 escaladas à ANEEL e notas do Prêmio IASC. |
+ | **`ccee-mercado-diario`** | **Diário** | `0 6 * * *` | 06:00 BRT | Atualização diária dos dados de Mercado CCEE e ONS (PLD, Curtailment, GSF, ESS). |
+ | **`cvm-dre-financeiro`** | **Mensal/Trim.** | `0 4 15 * *` | Dia 15 às 04:00 BRT | Ingestão dos demonstrativos contábeis CVM (DFP/ITR) e KPIs auditados das 8 companhias abertas. |
 
 ---
 

@@ -1,0 +1,32 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_atendimento_canais",
+  description: "Indicadores de Nível de Serviço Telefônico (INS), Abandono (IAb) e Tempo Médio de Atendimento (TMA)",
+  tags: ["gold", "atendimento", "canais", "callcenter"],
+  assertions: {
+    nonNull: ["distribuidora", "nome_concessionaria"],
+    rowConditions: [
+      "ins_pct >= 0",
+      "ins_pct <= 100",
+      "iab_pct >= 0"
+    ]
+  }
+}
+
+SELECT
+  distribuidora,
+  nome_concessionaria,
+  ins_pct,
+  iab_pct,
+  tma_s,
+  chamadas_totais,
+  status_ins,
+  status_iab,
+  status_geral,
+  data_referencia,
+  CURRENT_TIMESTAMP() AS data_processamento
+FROM
+  ${ref("qualidade_atendimento_comercial")}
+ORDER BY
+  ins_pct DESC

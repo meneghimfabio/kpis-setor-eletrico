@@ -226,7 +226,17 @@ class OnsSinIngestor:
                 if errors:
                     logger.error(f"Erros na insercao BigQuery (CMO): {errors}")
 
-            logger.info("Sincronizacao com BigQuery efetuada com sucesso.")
+            logger.info("Sincronizacao de dados brutos com BigQuery efetuada com sucesso.")
+
+            # 4. Materializar tabela Gold: gold_kpis.kpi_sin_operacao_resumo
+            try:
+                from pipelines.dataform.run_transformations import SQL_SIN_RESUMO
+                job = client.query(SQL_SIN_RESUMO)
+                job.result()
+                logger.info("Tabela Gold kpi_sin_operacao_resumo materializada com sucesso no BigQuery.")
+            except Exception as e_gold:
+                logger.warning(f"Aviso ao materializar kpi_sin_operacao_resumo: {e_gold}")
+
             return True
         except Exception as e:
             logger.error(f"Excecao ao persistir no BigQuery: {e}")
@@ -290,6 +300,7 @@ class OnsSinIngestor:
                 "cmo_medio": r["cmo_medio"],
                 "cmo_leve": r["cmo_leve"],
                 "cmo_pesada": r["cmo_pesada"],
+                "despacho_termico_mw": r.get("despacho_termico_mw", 0.0),
                 "status": "Normalidade" if r["cmo_medio"] < 250 else "Pressao de Custo"
             }
         cmo_atual = list(cmo_by_sub.values())
@@ -309,8 +320,46 @@ class OnsSinIngestor:
                 "N": round(float(row.get("N", 100.0)), 1),
             })
 
+        # 5. Consolidação Gold: kpi_sin_resumo
+        kpi_sin_resumo = []
+        for ear_item in ear_atual:
+            sub = ear_item.get("subsistema")
+            ena_item = ena_by_sub.get(sub, {})
+            cmo_item = cmo_by_sub.get(sub, {})
+            pct = ear_item.get("ear_percentual", 0.0)
+            meta = ear_item.get("meta_seguranca_percentual", 45.0)
+            folga = round(pct - meta, 2)
+            ena_pct = ena_item.get("ena_percentual_mlt", 100.0)
+
+            if pct < meta and ena_pct < 80.0:
+                status_sec = "Alerta Crítico: Armazenamento e Afluência Insuficientes"
+            elif pct < meta:
+                status_sec = "Atenção: Armazenamento Abaixo da Meta de Segurança"
+            elif ena_pct < 75.0:
+                status_sec = "Atenção: Afluência Severa (Seca Hidrológica)"
+            else:
+                status_sec = "Condição Favorável / Segurança Energética"
+
+            kpi_sin_resumo.append({
+                "subsistema": sub,
+                "data_referencia": ear_item.get("data_referencia"),
+                "ear_percentual": pct,
+                "ear_max_mwmes": ear_item.get("ear_max_mwmes", 0.0),
+                "ear_atual_mwmes": ear_item.get("ear_atual_mwmes", 0.0),
+                "meta_seguranca_percentual": meta,
+                "folga_seguranca_ear_pct": folga,
+                "status_ear": ear_item.get("status_criticidade", "Favoravel"),
+                "ena_mwmed": ena_item.get("ena_mwmed", 0.0),
+                "ena_percentual_mlt": ena_pct,
+                "classificacao_ena": ena_item.get("classificacao", "Normal"),
+                "cmo_medio_rs_mwh": cmo_item.get("cmo_medio", 68.0),
+                "despacho_termico_mw": cmo_item.get("despacho_termico_mw", 0.0),
+                "status_seguranca_energetica": status_sec
+            })
+
         # Atualizar SEED_DATA e Local Cache
         sin_data = {
+            "kpi_sin_resumo": kpi_sin_resumo,
             "ear_atual": ear_atual,
             "ear_subsistemas": ear_atual,
             "ear_historico_meses": ear_historico,
@@ -322,7 +371,7 @@ class OnsSinIngestor:
 
         SEED_DATA["operacao_sin"] = sin_data
         cache.set("domain_operacao_sin", sin_data)
-        logger.info("Cache local e SEED_DATA atualizados com dados oficiais do ONS.")
+        logger.info("Cache local e SEED_DATA atualizados com dados oficiais do ONS e kpi_sin_resumo.")
 
     def run_pipeline(self, years: Optional[List[int]] = None) -> Dict[str, Any]:
         """Executa o fluxo completo de ingestao."""

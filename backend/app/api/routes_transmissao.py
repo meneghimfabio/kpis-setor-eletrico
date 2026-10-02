@@ -9,5 +9,7 @@ def get_transmissao_overview():
     return {
         "kpis_resumo": data.get("kpis_resumo", {}),
         "concessionarias": data.get("concessionarias", []),
-        "desligamentos_recentes": data.get("desligamentos_recentes", [])
+        "desligamentos_recentes": data.get("desligamentos_recentes", []),
+        "ultima_atualizacao": "Resoluções Homologatórias de RAP e PVd - ANEEL",
+        "_metadata": data.get("_metadata")
     }

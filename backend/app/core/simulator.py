@@ -1,5 +1,6 @@
+from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
-from typing import Dict, Any
+from app.core.bcb_client import bcb_client
 
 class ProretSimulationInput(BaseModel):
     distribuidora: str = "CPFL Paulista"
@@ -10,6 +11,8 @@ class ProretSimulationInput(BaseModel):
     componente_q_pct: float = Field(default=-0.15, description="Fator de incentivo à qualidade DEC/FEC (negativo = bônus, positivo = penalidade) em %")
     mercado_faturado_gwh: float = Field(default=28500.0, description="Mercado de energia faturado em GWh")
     custos_parcela_a_rs_mm: float = Field(default=5800.0, description="Custos não-gerenciáveis de energia comprada e encargos setoriais em R$ Milhões")
+    taxa_selic_pct: Optional[float] = Field(default=None, description="Taxa Selic anualizada vigente (% a.a.) via BCB SGS")
+    inflacao_ipca_pct: Optional[float] = Field(default=None, description="Taxa IPCA acumulada 12 meses vigente (%) via BCB SGS")
 
 class ProretSimulationResult(BaseModel):
     remuneracao_capital_rs_mm: float
@@ -24,9 +27,20 @@ class ProretSimulationResult(BaseModel):
     impacto_tarifa_percentual: float
     analise_qualidade_dec_fec: str
     detalhes_calculo: Dict[str, Any]
+    wacc_nominal_pct: Optional[float] = None
+    taxa_selic_vigente_pct: Optional[float] = None
+    inflacao_ipca_vigente_pct: Optional[float] = None
 
 def simulate_proret_tariff(params: ProretSimulationInput) -> ProretSimulationResult:
-    # 1. Remuneração do Capital = BRR * WACC
+    # Obter dados macroeconômicos do BCB SGS caso não fornecidos
+    macro = bcb_client.get_macro_indicators()
+    selic_vigente = params.taxa_selic_pct if params.taxa_selic_pct is not None else macro.get("selic_meta_anual_pct", 13.75)
+    ipca_vigente = params.inflacao_ipca_pct if params.inflacao_ipca_pct is not None else macro.get("ipca_acumulado_12m_pct", 4.22)
+    
+    # Cálculo do WACC Nominal via Equação de Fisher: (1 + WACC_real) * (1 + IPCA) - 1
+    wacc_nominal = round(((1.0 + params.wacc_regulatorio_pct / 100.0) * (1.0 + ipca_vigente / 100.0) - 1.0) * 100.0, 2)
+
+    # 1. Remuneração do Capital = BRR * WACC Real Regulatório
     wacc_decimal = params.wacc_regulatorio_pct / 100.0
     remuneracao_capital = params.brr_liquida_rs_mm * wacc_decimal
     
@@ -74,9 +88,16 @@ def simulate_proret_tariff(params: ProretSimulationInput) -> ProretSimulationRes
         tarifa_media_rs_kwh=round(tarifa_kwh, 4),
         impacto_tarifa_percentual=round(impacto_pct, 2),
         analise_qualidade_dec_fec=analise_q,
+        wacc_nominal_pct=wacc_nominal,
+        taxa_selic_vigente_pct=selic_vigente,
+        inflacao_ipca_vigente_pct=ipca_vigente,
         detalhes_calculo={
-            "formula": "Receita Requerida = Parcela A + [ (BRR * WACC) + OPEX - Fator_X - Comp_Q ]",
-            "wacc_utilizado_pct": params.wacc_regulatorio_pct,
+            "formula": "Receita Requerida = Parcela A + [ (BRR * WACC_Real) + OPEX - Fator_X - Comp_Q ]",
+            "wacc_real_pct": params.wacc_regulatorio_pct,
+            "wacc_nominal_estimado_pct": wacc_nominal,
+            "taxa_selic_pct": selic_vigente,
+            "inflacao_ipca_12m_pct": ipca_vigente,
+            "macro_fonte": macro.get("fonte", "Banco Central do Brasil (BCB SGS)"),
             "brr_utilizada_rs_mm": params.brr_liquida_rs_mm
         }
     )

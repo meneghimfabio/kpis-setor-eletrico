@@ -11,6 +11,6 @@ def get_atendimento_overview():
         "canais_atendimento": data.get("canais_atendimento", {}),
         "slas_comerciais": data.get("slas_comerciais", []),
         "ouvidoria_aneel": data.get("ouvidoria_aneel", []),
-        "ultima_atualizacao_aneel": data.get("ultima_atualizacao_aneel", "Dados Oficiais ANEEL Ouvidoria & IASC"),
+        "ultima_atualizacao_aneel": data.get("ultima_atualizacao_aneel", "Dados Oficiais ANEEL Ouvidoria & Atendimento Comercial (REN 1.000/2021)"),
         "_metadata": data.get("_metadata")
     }

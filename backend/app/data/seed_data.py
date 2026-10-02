@@ -232,20 +232,22 @@ SEED_DATA = {
     },
     "financeiro_proret": {
         "indicadores_setoriais": {
-            "ebitda_total_setor_rs_mm": 64800.0,
-            "margem_ebitda_media_pct": 34.2,
-            "capex_executado_ano_rs_mm": 42500.0,
-            "alavancagem_media_dl_ebitda": 2.45,
+            "receita_total_setor_rs_mm": 227150.0,
+            "ebitda_total_setor_rs_mm": 74380.0,
+            "margem_ebitda_media_pct": 32.7,
+            "capex_executado_ano_rs_mm": 34600.0,
+            "alavancagem_media_dl_ebitda": 2.48,
             "dividend_yield_medio_pct": 7.8
         },
         "empresas_dre": [
-            {"empresa": "CPFL Energia", "receita_liquida_rs_mm": 39800.0, "ebitda_rs_mm": 12450.0, "margem_ebitda_pct": 31.3, "lucro_liquido_rs_mm": 5120.0, "capex_rs_mm": 5200.0, "alavancagem": 2.1},
-            {"empresa": "Cemig", "receita_liquida_rs_mm": 36500.0, "ebitda_rs_mm": 8900.0, "margem_ebitda_pct": 24.4, "lucro_liquido_rs_mm": 4850.0, "capex_rs_mm": 3800.0, "alavancagem": 1.8},
-            {"empresa": "Copel", "receita_liquida_rs_mm": 23400.0, "ebitda_rs_mm": 5800.0, "margem_ebitda_pct": 24.8, "lucro_liquido_rs_mm": 2900.0, "capex_rs_mm": 2600.0, "alavancagem": 1.9},
-            {"empresa": "ISA CTEEP (Transmissão)", "receita_liquida_rs_mm": 4350.0, "ebitda_rs_mm": 3480.0, "margem_ebitda_pct": 80.0, "lucro_liquido_rs_mm": 2150.0, "capex_rs_mm": 1950.0, "alavancagem": 2.6},
-            {"empresa": "TAESA (Transmissão)", "receita_liquida_rs_mm": 3600.0, "ebitda_rs_mm": 3100.0, "margem_ebitda_pct": 86.1, "lucro_liquido_rs_mm": 1890.0, "capex_rs_mm": 1450.0, "alavancagem": 3.7},
-            {"empresa": "Equatorial Energia", "receita_liquida_rs_mm": 38200.0, "ebitda_rs_mm": 9150.0, "margem_ebitda_pct": 24.0, "lucro_liquido_rs_mm": 2640.0, "capex_rs_mm": 4900.0, "alavancagem": 3.2},
-            {"empresa": "Neoenergia", "receita_liquida_rs_mm": 44100.0, "ebitda_rs_mm": 11800.0, "margem_ebitda_pct": 26.8, "lucro_liquido_rs_mm": 4100.0, "capex_rs_mm": 8600.0, "alavancagem": 3.4}
+            {"empresa": "CPFL Energia", "ticker": "CPFE3", "codigo_cvm": "018660", "receita_liquida_rs_mm": 39800.0, "ebitda_rs_mm": 12450.0, "margem_ebitda_pct": 31.3, "lucro_liquido_rs_mm": 5120.0, "divida_liquida_rs_mm": 26145.0, "capex_rs_mm": 5200.0, "alavancagem": 2.10, "status_auditoria": "Auditado (KPMG)"},
+            {"empresa": "Cemig", "ticker": "CMIG4", "codigo_cvm": "002453", "receita_liquida_rs_mm": 36500.0, "ebitda_rs_mm": 8900.0, "margem_ebitda_pct": 24.4, "lucro_liquido_rs_mm": 4850.0, "divida_liquida_rs_mm": 16020.0, "capex_rs_mm": 3800.0, "alavancagem": 1.80, "status_auditoria": "Auditado (EY)"},
+            {"empresa": "Copel", "ticker": "CPLE6", "codigo_cvm": "014311", "receita_liquida_rs_mm": 23400.0, "ebitda_rs_mm": 5800.0, "margem_ebitda_pct": 24.8, "lucro_liquido_rs_mm": 2900.0, "divida_liquida_rs_mm": 11020.0, "capex_rs_mm": 2600.0, "alavancagem": 1.90, "status_auditoria": "Auditado (PwC)"},
+            {"empresa": "ISA CTEEP (Transmissão)", "ticker": "TRPL4", "codigo_cvm": "018970", "receita_liquida_rs_mm": 4350.0, "ebitda_rs_mm": 3480.0, "margem_ebitda_pct": 80.0, "lucro_liquido_rs_mm": 2150.0, "divida_liquida_rs_mm": 9048.0, "capex_rs_mm": 1950.0, "alavancagem": 2.60, "status_auditoria": "Auditado (Deloitte)"},
+            {"empresa": "TAESA (Transmissão)", "ticker": "TAEE11", "codigo_cvm": "020257", "receita_liquida_rs_mm": 3600.0, "ebitda_rs_mm": 3100.0, "margem_ebitda_pct": 86.1, "lucro_liquido_rs_mm": 1890.0, "divida_liquida_rs_mm": 11470.0, "capex_rs_mm": 1450.0, "alavancagem": 3.70, "status_auditoria": "Auditado (KPMG)"},
+            {"empresa": "Equatorial Energia", "ticker": "EQTL3", "codigo_cvm": "020788", "receita_liquida_rs_mm": 38200.0, "ebitda_rs_mm": 9150.0, "margem_ebitda_pct": 24.0, "lucro_liquido_rs_mm": 2640.0, "divida_liquida_rs_mm": 29280.0, "capex_rs_mm": 4900.0, "alavancagem": 3.20, "status_auditoria": "Auditado (EY)"},
+            {"empresa": "Neoenergia", "ticker": "NEOE3", "codigo_cvm": "023531", "receita_liquida_rs_mm": 44100.0, "ebitda_rs_mm": 11800.0, "margem_ebitda_pct": 26.8, "lucro_liquido_rs_mm": 4100.0, "divida_liquida_rs_mm": 40120.0, "capex_rs_mm": 8600.0, "alavancagem": 3.40, "status_auditoria": "Auditado (EY)"},
+            {"empresa": "Eletrobras", "ticker": "ELET3", "codigo_cvm": "002437", "receita_liquida_rs_mm": 37200.0, "ebitda_rs_mm": 19700.0, "margem_ebitda_pct": 53.0, "lucro_liquido_rs_mm": 4400.0, "divida_liquida_rs_mm": 41370.0, "capex_rs_mm": 6100.0, "alavancagem": 2.10, "status_auditoria": "Auditado (PwC)"}
         ],
         "parametros_proret_padrao": {
             "distribuidora_exemplo": "CPFL Paulista",
@@ -267,42 +269,66 @@ SEED_DATA = {
     },
     "alertas_regulatorios": [
         {
-            "id": "ALT-001",
-            "nivel": "critico",
-            "modulo": "Comercialização / CCEE",
-            "titulo": "GSF abaixo de 0.80 (Risco Hidrológico Elevado)",
-            "descricao": "GSF apurado em 0.76 no mês atual. Exposição financeira estimada de geradores no MCP de R$ 850 MM.",
-            "data_evento": "2026-08-18"
-        },
-        {
-            "id": "ALT-002",
+            "id": "ALT-DEC-ENEL_SP",
             "nivel": "critico",
             "modulo": "Distribuição / Qualidade",
-            "titulo": "DEC acima do Limite Regulatório ANEEL",
-            "descricao": "Enel SP apurou DEC de 11.45h vs limite ANEEL de 9.20h (+24.4% de desvio). Risco de ressarcimento Módulo 9.",
+            "titulo": "DEC acima do Limite Regulatório ANEEL - Enel São Paulo (SP)",
+            "descricao": "Enel SP apurou DEC de 11.45h vs limite ANEEL de 9.20h (+24.5% de desvio). Compensação financeira estimada em R$ 10.13 MM sob Módulo 8 do PRODIST.",
             "data_evento": "2026-08-15"
         },
         {
-            "id": "ALT-003",
+            "id": "ALT-DEC-EQUATORIAL_PA",
+            "nivel": "critico",
+            "modulo": "Distribuição / Qualidade",
+            "titulo": "DEC Crítico acima do Limite ANEEL - Equatorial Pará (PA)",
+            "descricao": "Equatorial PA apurou DEC de 17.20h vs limite ANEEL de 14.50h (+18.6% de desvio). Risco de ressarcimento e penalidades tarifárias no PRORET.",
+            "data_evento": "2026-08-15"
+        },
+        {
+            "id": "ALT-DEC-LIGHT",
+            "nivel": "alerta",
+            "modulo": "Distribuição / Qualidade",
+            "titulo": "DEC acima do Limite ANEEL - Light (RJ)",
+            "descricao": "Light apurou DEC de 10.85h vs limite regulatório de 9.80h (+10.7% de desvio). Risco de exposição a compensações e impacto no Componente Q.",
+            "data_evento": "2026-08-15"
+        },
+        {
+            "id": "ALT-GSF-RISK-AGO26",
+            "nivel": "critico",
+            "modulo": "Comercialização / CCEE",
+            "titulo": "GSF Crítico em 0.76 (Risco Hidrológico e Exposição MCP)",
+            "descricao": "Fator de Ajuste de Garantia Física apurado em 0.76 no mês atual. Exposição financeira projetada de geradores hidrelétricos no MCP da CCEE de R$ 850 MM.",
+            "data_evento": "2026-08-18"
+        },
+        {
+            "id": "ALT-PLD-SPREAD-NE",
             "nivel": "alerta",
             "modulo": "Comercialização / CCEE",
-            "titulo": "Curtailment Solar/Eólico no Nordeste > 10%",
-            "descricao": "Corte de geração eólica de 10.7% e solar de 12.1% no subsistema Nordeste por saturação do tronco de transmissão.",
+            "titulo": "Descolamento de Preço (Spread PLD Nordeste vs SIN)",
+            "descricao": "Diferença regional acentuada de PLD (NE em R$ 74.90/MWh vs média nacional de R$ 68.05/MWh). Congestionamento em linhas de interligação inter-regional.",
+            "data_evento": "2026-08-18"
+        },
+        {
+            "id": "ALT-CURT-NE-EOLICA",
+            "nivel": "alerta",
+            "modulo": "Comercialização / CCEE",
+            "titulo": "Curtailment Eólico no Nordeste > 10%",
+            "descricao": "Corte de geração eólica de 10.7% no subsistema Nordeste em razão de saturação do tronco de transmissão e restrições de confiabilidade do ONS.",
             "data_evento": "2026-08-17"
         },
         {
-            "id": "ALT-004",
+            "id": "ALT-PERDAS-LIGHT-RJ",
             "nivel": "alerta",
             "modulo": "Perdas / MMGD",
             "titulo": "Perdas Não-Técnicas Severas (Light e Equatorial Pará)",
-            "descricao": "Light com 16.4% e Equatorial PA com 15.1% de perdas por furto/fraude, superando as trajetórias regulatórias da ANEEL.",
+            "descricao": "Light com 16.4% e Equatorial PA com 15.1% de perdas por furto e fraude, superando a trajetória regulatória estabelecida pela ANEEL.",
             "data_evento": "2026-08-10"
         },
         {
-            "id": "ALT-005",
+            "id": "ALT-SIN-EAR-SEGURO",
             "nivel": "info",
             "modulo": "Operação SIN",
-            "titulo": "EAR do SIN em nível seguro (65.8%)",
+            "titulo": "EAR Agregado do SIN em Nível Seguro (65.8%)",
             "descricao": "Nível de armazenamento agregado mantém folga confortável em relação à curva guia de segurança energética do ONS.",
             "data_evento": "2026-08-19"
         }
