@@ -213,16 +213,17 @@ npm run dev
 
 ## 🌊 Execução das Pipelines do Data Lakehouse
 
-Para rodar a ingestão e atualização das 3 camadas da ANEEL:
+Para rodar a ingestão e atualização das 3 camadas da ANEEL e CCEE/ONS:
 
 ```bash
 # 1. Ingestão da Camada Bronze (GCS) e Carga na Camada Silver (BigQuery):
+PYTHONPATH=. ./backend/venv/bin/python pipelines/ingestion/ccee_live_ingestor.py
 PYTHONPATH=. ./backend/venv/bin/python pipelines/ingestion/aneel_tarifas_ingestor.py
 PYTHONPATH=. ./backend/venv/bin/python pipelines/ingestion/aneel_prodist_ingestor.py
 PYTHONPATH=. ./backend/venv/bin/python pipelines/ingestion/aneel_mmgd_ingestor.py
 PYTHONPATH=. ./backend/venv/bin/python pipelines/ingestion/aneel_ouvidoria_ingestor.py
 
-# 2. Transformação da Camada Silver para a Camada Gold:
+# 2. Transformação da Camada Silver para a Camada Gold (Dataform / BigQuery):
 PYTHONPATH=. ./backend/venv/bin/python pipelines/dataform/run_transformations.py
 ```
 
@@ -254,7 +255,7 @@ gcloud run deploy kpis-setor-eletrico \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars GCP_PROJECT_ID=kpisetoreletrico,PORT=8080
+  --set-env-vars GCP_PROJECT_ID=kpisetoreletrico
 ```
 
 ---

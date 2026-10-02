@@ -1,6 +1,14 @@
 import os
+import sys
+from pathlib import Path
 import logging
 import datetime
+
+# Garante que a raiz do repositório esteja no sys.path para importações de pipelines
+project_root = str(Path(__file__).resolve().parents[3])
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from typing import Dict, Any, List, Optional
 import requests
 from app.core.config import settings
@@ -136,15 +144,27 @@ class CceeMarketIngestor:
     def update_local_cache_and_seed(self, ccee_data: Dict[str, Any]):
         ccee_data["ultima_atualizacao_ccee"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         SEED_DATA["mercado_ccee"] = ccee_data
-        cache.set("domain_mercado_ccee", ccee_data)
-        logger.info("Cache local e SEED_DATA atualizados com dados de Mercado CCEE.")
+        cache.delete("domain_mercado_ccee")
+        logger.info("SEED_DATA atualizado e cache invalidado para Mercado CCEE.")
 
     def run_pipeline(self) -> Dict[str, Any]:
-        logger.info("Iniciando pipeline de ingestao de Mercado CCEE...")
+        logger.info("Iniciando pipeline de ingestao live de Mercado CCEE...")
         self.last_status["status"] = "running"
         self.last_status["error"] = None
 
         try:
+            from pipelines.ingestion.ccee_live_ingestor import ccee_live_ingestor
+            live_status = ccee_live_ingestor.run_pipeline()
+            
+            if live_status.get("status") == "success" and "data" in live_status:
+                ccee_payload = live_status["data"]
+                self.update_local_cache_and_seed(ccee_payload)
+                # Invalidar cache de domínio para recarregar do BigQuery Gold
+                cache.delete("domain_mercado_ccee")
+                self.last_status = live_status
+                return self.last_status
+
+            # Fallback local se o pipeline live falhar
             pld_atual = self.fetch_pld_spot()
             gsf_historico = self.fetch_gsf_history()
             ess_encargos = self.fetch_ess_charges()

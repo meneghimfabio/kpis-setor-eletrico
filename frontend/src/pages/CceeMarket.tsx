@@ -60,10 +60,13 @@ export const CceeMarket: React.FC<CceeMarketProps> = ({ selectedSubsystem = 'SIN
     );
   }
 
-  const { pld_atual, gsf_historico, ess_encargos, bandeira_vigente, curtailment: all_curtailment, ultima_atualizacao_ccee } = data;
+  const { pld_atual, gsf_historico, ess_encargos, bandeira_vigente, curtailment: all_curtailment, ultima_atualizacao_ccee, _metadata } = data;
   const curtailment = selectedSubsystem === 'SIN'
     ? all_curtailment
     : all_curtailment.filter((c: any) => c.subsistema === selectedSubsystem);
+
+  const latestGsf = gsf_historico && gsf_historico.length > 0 ? gsf_historico[gsf_historico.length - 1] : { gsf: 0.76, alerta: "Crítico" };
+  const isLiveGold = _metadata?.source === 'bigquery_gold';
 
   return (
     <div className="space-y-6">
@@ -74,7 +77,19 @@ export const CceeMarket: React.FC<CceeMarketProps> = ({ selectedSubsystem = 'SIN
               <TrendingUp className="w-5 h-5" />
             </span>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Comercialização & Mercado (CCEE)</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-900">Comercialização & Mercado (CCEE)</h2>
+                {isLiveGold ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                    LIVE CCEE / BIGQUERY GOLD
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                    DADOS CURADOS (FALLBACK)
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-500">
                 Preço de Liquidação das Diferenças (PLD), Fator de Risco Hidrológico (GSF), Encargos ESS e Curtailment
               </p>
@@ -91,10 +106,10 @@ export const CceeMarket: React.FC<CceeMarketProps> = ({ selectedSubsystem = 'SIN
               className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm ${
                 isSyncing ? 'opacity-70 cursor-not-allowed' : ''
               }`}
-              title="Sincronizar com dados oficiais de mercado da CCEE"
+              title="Disparar ingestão oficial de mercado da CCEE e ONS"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span>{isSyncing ? 'Sincronizando CCEE...' : 'Atualizar Dados CCEE'}</span>
+              <span>{isSyncing ? 'Sincronizando Live...' : 'Atualizar Dados CCEE Live'}</span>
             </button>
           </div>
         </div>
@@ -110,23 +125,23 @@ export const CceeMarket: React.FC<CceeMarketProps> = ({ selectedSubsystem = 'SIN
           title="PLD Médio Brasil"
           value={`R$ ${pld_atual.pld_medio_rs_mwh}`}
           unit="/ MWh"
-          statusText="Piso Regulatório"
-          statusVariant="info"
+          statusText={pld_atual.spread_regional_rs_mwh ? `Spread: R$ ${pld_atual.spread_regional_rs_mwh}` : "Piso Regulatório"}
+          statusVariant={pld_atual.spread_regional_rs_mwh > 50 ? "alerta" : "info"}
           subtitle={`Teto: R$ ${pld_atual.pld_teto_rs_mwh} | Piso: R$ ${pld_atual.pld_piso_rs_mwh}`}
           icon={<DollarSign className="w-4 h-4 text-indigo-600" />}
         />
         <StatCard
           title="GSF Atual (Risco Hidrológico)"
-          value="0.76"
-          statusText="Crítico (< 0.80)"
-          statusVariant="critico"
-          subtitle="Geração Física / Garantia Física"
+          value={String(latestGsf.gsf)}
+          statusText={latestGsf.gsf < 0.80 ? "Crítico (< 0.80)" : (latestGsf.gsf < 0.85 ? "Atenção" : "Normalidade")}
+          statusVariant={latestGsf.gsf < 0.80 ? "critico" : (latestGsf.gsf < 0.85 ? "alerta" : "sucesso")}
+          subtitle={`Mês Ref: ${latestGsf.mes || 'Atual'} | MRE`}
           icon={<AlertTriangle className="w-4 h-4 text-rose-600" />}
         />
         <StatCard
           title="Encargos ESS do Mês"
           value={`R$ ${ess_encargos.total_mes_rs_mm} MM`}
-          statusText="61.8% Térmicas"
+          statusText={ess_encargos.categorias?.[0]?.pct ? `${ess_encargos.categorias[0].pct}% Térmicas` : "61.8% Térmicas"}
           statusVariant="alerta"
           subtitle="Segurança Energética"
           icon={<ShieldAlert className="w-4 h-4 text-amber-600" />}

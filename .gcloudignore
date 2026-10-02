@@ -1,26 +1,10 @@
-.gcloudignore
-.git/
+.git
 .gitignore
+.gcloudignore
 .dockerignore
-
-# Virtual environments & node_modules
 backend/venv/
-venv/
+backend/**/__pycache__/
+backend/**/*.pyc
 frontend/node_modules/
-node_modules/
 frontend/dist/
-
-# Python cache
-__pycache__/
-*.py[cod]
-*.pyo
-.pytest_cache/
-
-# OS / Editor
-.DS_Store
-.vscode/
-.idea/
-
-# Large local pipelines or scratch
-pipelines/scratch/
-scratch/
+**/.DS_Store

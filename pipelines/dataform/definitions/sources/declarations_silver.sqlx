@@ -29,3 +29,35 @@ config {
   name: "ouvidoria_reclamacoes",
   description: "Métricas de ouvidoria, reclamações e satisfação IASC da ANEEL"
 }
+
+config {
+  type: "declaration",
+  database: "kpisetoreletrico",
+  schema: "mercado_ccee",
+  name: "pld_horario",
+  description: "Preço de Liquidação das Diferenças (PLD) horário por submercado"
+}
+
+config {
+  type: "declaration",
+  database: "kpisetoreletrico",
+  schema: "mercado_ccee",
+  name: "gsf_mensal",
+  description: "Série histórica de GSF do MRE apurado pela CCEE"
+}
+
+config {
+  type: "declaration",
+  database: "kpisetoreletrico",
+  schema: "mercado_ccee",
+  name: "ess_encargos",
+  description: "Encargos de Serviço do Sistema (ESS) apurados na liquidação financeira"
+}
+
+config {
+  type: "declaration",
+  database: "kpisetoreletrico",
+  schema: "mercado_ccee",
+  name: "curtailment_renovaveis",
+  description: "Restrições de geração (curtailment) eólica e solar por subsistema"
+}

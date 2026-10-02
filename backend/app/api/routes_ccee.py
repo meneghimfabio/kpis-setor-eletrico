@@ -12,5 +12,6 @@ def get_ccee_overview():
         "ess_encargos": data.get("ess_encargos", {}),
         "bandeira_vigente": data.get("bandeira_vigente", {}),
         "curtailment": data.get("curtailment", []),
-        "ultima_atualizacao_ccee": data.get("ultima_atualizacao_ccee", "Dados Oficiais CCEE")
+        "ultima_atualizacao_ccee": data.get("ultima_atualizacao_ccee", "Dados Oficiais CCEE"),
+        "_metadata": data.get("_metadata")
     }

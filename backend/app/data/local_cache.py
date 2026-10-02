@@ -22,6 +22,10 @@ class SimpleCache:
             "expires_at": time.time() + duration
         }
 
+    def delete(self, key: str) -> None:
+        if key in self._cache:
+            del self._cache[key]
+
     def clear(self) -> None:
         self._cache.clear()
 

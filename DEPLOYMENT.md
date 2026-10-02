@@ -67,7 +67,7 @@ gcloud run deploy kpis-setor-eletrico \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars GCP_PROJECT_ID=kpisetoreletrico,PORT=8080 \
+  --set-env-vars GCP_PROJECT_ID=kpisetoreletrico \
   --memory 1Gi \
   --cpu 1 \
   --min-instances 0 \

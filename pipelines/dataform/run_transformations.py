@@ -154,6 +154,63 @@ ORDER BY
   ranking_iasc ASC;
 """
 
+SQL_CCEE = f"""
+CREATE OR REPLACE TABLE `{PROJECT_ID}.gold_kpis.kpi_ccee_mercado_resumo` AS
+WITH latest_pld AS (
+  SELECT
+    data_hora,
+    subsistema,
+    pld_rs_mwh,
+    pld_teto_rs_mwh,
+    pld_piso_rs_mwh,
+    patamar,
+    ROW_NUMBER() OVER (PARTITION BY subsistema ORDER BY data_hora DESC) as rn
+  FROM
+    `{PROJECT_ID}.mercado_ccee.pld_horario`
+),
+pld_filtrado AS (
+  SELECT
+    subsistema,
+    pld_rs_mwh,
+    pld_teto_rs_mwh,
+    pld_piso_rs_mwh,
+    patamar,
+    data_hora as data_apuracao
+  FROM
+    latest_pld
+  WHERE
+    rn = 1
+),
+pld_stats AS (
+  SELECT
+    ROUND(AVG(pld_rs_mwh), 2) as pld_medio_nacional_rs_mwh,
+    ROUND(MAX(pld_rs_mwh) - MIN(pld_rs_mwh), 2) as spread_maximo_regional_rs_mwh,
+    CASE 
+      WHEN (MAX(pld_rs_mwh) - MIN(pld_rs_mwh)) > 15.0 THEN "Alerta: Descolamento Estrutural entre Submercados"
+      ELSE "Equilíbrio Inter-regional"
+    END as status_integracao_sin
+  FROM
+    pld_filtrado
+)
+SELECT
+  p.subsistema,
+  p.pld_rs_mwh,
+  p.pld_teto_rs_mwh,
+  p.pld_piso_rs_mwh,
+  p.patamar,
+  p.data_apuracao,
+  s.pld_medio_nacional_rs_mwh,
+  s.spread_maximo_regional_rs_mwh,
+  s.status_integracao_sin,
+  ROUND((p.pld_rs_mwh - s.pld_medio_nacional_rs_mwh), 2) as diferenca_vs_media_nacional
+FROM
+  pld_filtrado p
+CROSS JOIN
+  pld_stats s
+ORDER BY
+  p.pld_rs_mwh DESC;
+"""
+
 def run_gold_transformations():
     client = get_bigquery_client()
     logger.info("=== Executando Transformações Silver -> Gold (Dataform / BigQuery) ===")
@@ -162,16 +219,20 @@ def run_gold_transformations():
         ("kpi_dec_fec_conformidade", SQL_DEC_FEC),
         ("kpi_mmgd_expansao_uf", SQL_MMGD),
         ("kpi_tarifas_ranking", SQL_TARIFAS),
-        ("kpi_ouvidoria_satisfacao", SQL_OUVIDORIA)
+        ("kpi_ouvidoria_satisfacao", SQL_OUVIDORIA),
+        ("kpi_ccee_mercado_resumo", SQL_CCEE)
     ]
     
     for name, sql in queries:
         logger.info(f"Materializando tabela Gold: {PROJECT_ID}.gold_kpis.{name}...")
-        job = client.query(sql)
-        job.result()
-        logger.info(f"Tabela Gold {name} criada e atualizada com sucesso.")
+        try:
+            job = client.query(sql)
+            job.result()
+            logger.info(f"Tabela Gold {name} criada e atualizada com sucesso.")
+        except Exception as e:
+            logger.warning(f"Aviso ao materializar {name} no BigQuery: {e}")
         
-    logger.info("=== Todas as tabelas Gold foram geradas com sucesso! ===")
+    logger.info("=== Transformações Gold processadas! ===")
 
 if __name__ == "__main__":
     run_gold_transformations()

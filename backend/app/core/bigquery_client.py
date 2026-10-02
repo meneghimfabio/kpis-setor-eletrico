@@ -166,6 +166,54 @@ class BigQueryManager:
                         data["ranking_tarifario_aneel"] = rows
                         source_mode = "bigquery_gold"
 
+                elif domain == "mercado_ccee":
+                    sql = f"""
+                    SELECT 
+                      subsistema, 
+                      pld_rs_mwh, 
+                      pld_teto_rs_mwh, 
+                      pld_piso_rs_mwh, 
+                      patamar, 
+                      data_apuracao, 
+                      pld_medio_nacional_rs_mwh, 
+                      spread_maximo_regional_rs_mwh, 
+                      status_integracao_sin, 
+                      diferenca_vs_media_nacional
+                    FROM `{self.project_id}.gold_kpis.kpi_ccee_mercado_resumo`
+                    ORDER BY subsistema ASC
+                    """
+                    rows = [dict(row) for row in self.client.query(sql).result()]
+                    if rows:
+                        pld_medio = rows[0].get("pld_medio_nacional_rs_mwh", 69.45)
+                        pld_teto = rows[0].get("pld_teto_rs_mwh", 678.85)
+                        pld_piso = rows[0].get("pld_piso_rs_mwh", 61.07)
+                        spread = rows[0].get("spread_maximo_regional_rs_mwh", 0.0)
+                        status_integracao = rows[0].get("status_integracao_sin", "Normalidade")
+                        
+                        subsistemas_list = []
+                        for r in rows:
+                            status_sub = "Dentro da Normalidade"
+                            if r["pld_rs_mwh"] >= 250.0:
+                                status_sub = "Preço Elevado (Despacho Térmico)"
+                            elif r["subsistema"] == "NE" and spread > 15.0:
+                                status_sub = "Descolamento por Restrição"
+                            subsistemas_list.append({
+                                "subsistema": r["subsistema"],
+                                "pld_rs_mwh": r["pld_rs_mwh"],
+                                "status": status_sub
+                            })
+                        
+                        data["pld_atual"] = {
+                            "pld_medio_rs_mwh": pld_medio,
+                            "pld_teto_rs_mwh": pld_teto,
+                            "pld_piso_rs_mwh": pld_piso,
+                            "spread_regional_rs_mwh": spread,
+                            "status_integracao": status_integracao,
+                            "subsistemas": subsistemas_list,
+                            "data_apuracao": str(rows[0].get("data_apuracao", ""))
+                        }
+                        source_mode = "bigquery_gold"
+
             except Exception as e:
                 logger.warning(f"Erro ao consultar Camada Gold para '{domain}': {e}. Mantendo dados de contingência.")
                 source_mode = "seed_fallback"

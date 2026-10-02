@@ -105,10 +105,17 @@ create_or_update_job \
     "/api/v1/ingestion/datalake/ouvidoria/run" \
     "Atualização mensal das reclamações de Nível 2 na ANEEL e notas do Prêmio IASC"
 
+# 4.6 Mercado CCEE Diário: PLD Horário, GSF, ESS e Curtailment (Todos os dias às 06:00 BRT)
+create_or_update_job \
+    "ccee-mercado-diario" \
+    "0 6 * * *" \
+    "/api/v1/ingestion/ccee/run" \
+    "Atualização diária dos dados de Mercado CCEE e ONS (PLD, Curtailment, GSF, ESS)"
+
 echo ""
-echo "=== Todos os 5 Jobs do Cloud Scheduler foram configurados com sucesso! ==="
+echo "=== Todos os 6 Jobs do Cloud Scheduler foram configurados com sucesso! ==="
 echo "Para listar todos os agendamentos ativos:"
 echo "gcloud scheduler jobs list --location=$REGION --project=$PROJECT_ID"
 echo ""
-echo "Para testar manualmente o job mestre imediatamente:"
-echo "gcloud scheduler jobs run aneel-datalake-master-diario --location=$REGION --project=$PROJECT_ID"
+echo "Para testar manualmente o job CCEE imediatamente:"
+echo "gcloud scheduler jobs run ccee-mercado-diario --location=$REGION --project=$PROJECT_ID"
