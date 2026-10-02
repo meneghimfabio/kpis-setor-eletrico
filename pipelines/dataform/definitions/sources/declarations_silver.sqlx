@@ -77,3 +77,11 @@ config {
   name: "qualidade_atendimento_comercial",
   description: "Qualidade do atendimento comercial e cumprimento de SLAs da REN 1.000/2021"
 }
+
+config {
+  type: "declaration",
+  database: "kpisetoreletrico",
+  schema: "aneel_silver",
+  name: "cvm_dre_empresas",
+  description: "Demonstrações financeiras auditadas (DFP/ITR CVM) das 8 maiores companhias abertas de energia"
+}

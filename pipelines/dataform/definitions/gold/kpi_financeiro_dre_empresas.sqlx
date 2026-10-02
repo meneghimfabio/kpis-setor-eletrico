@@ -1,0 +1,37 @@
+config {
+  type: "table",
+  schema: "gold_kpis",
+  name: "kpi_financeiro_dre_empresas",
+  description: "Demonstrações financeiras auditadas (CVM DFP/ITR) e indicadores corporativos das maiores companhias abertas do setor elétrico",
+  tags: ["gold", "financeiro", "cvm", "dre", "proret"],
+  assertions: {
+    nonNull: ["empresa", "ticker", "codigo_cvm", "receita_liquida_rs_mm", "ebitda_rs_mm"],
+    rowConditions: [
+      "receita_liquida_rs_mm > 0",
+      "ebitda_rs_mm > 0",
+      "margem_ebitda_pct >= 0.0"
+    ]
+  }
+}
+
+SELECT
+  empresa,
+  ticker,
+  codigo_cvm,
+  cnpj,
+  segmento,
+  ano_referencia,
+  tipo_demonstrativo,
+  status_auditoria,
+  receita_liquida_rs_mm,
+  ebitda_rs_mm,
+  margem_ebitda_pct,
+  lucro_liquido_rs_mm,
+  divida_liquida_rs_mm,
+  capex_rs_mm,
+  alavancagem,
+  CURRENT_TIMESTAMP() AS data_processamento
+FROM
+  ${ref("cvm_dre_empresas")}
+ORDER BY
+  receita_liquida_rs_mm DESC
