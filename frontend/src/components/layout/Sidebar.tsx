@@ -8,7 +8,9 @@ import {
   Percent,
   Headphones,
   DollarSign,
-  AlertOctagon
+  AlertOctagon,
+  Sparkles,
+  BookOpen
 } from 'lucide-react';
 
 export type TabKey =
@@ -20,7 +22,8 @@ export type TabKey =
   | 'perdas_mmgd'
   | 'atendimento'
   | 'financeiro_proret'
-  | 'alerts';
+  | 'alerts'
+  | 'project_story';
 
 interface SidebarProps {
   activeTab: TabKey;
@@ -136,6 +139,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, alertC
             </button>
           );
         })}
+
+        {/* Módulo Especial de Apresentação & Case */}
+        <div className="pt-3 pb-1">
+          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center justify-between">
+            <span>Special Showcase</span>
+            <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 flex items-center gap-1 font-semibold">
+              <Sparkles className="w-2.5 h-2.5" />
+              Antigravity+Gemini
+            </span>
+          </div>
+          <button
+            onClick={() => onSelectTab('project_story')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition-all border ${
+              activeTab === 'project_story'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md border-blue-400'
+                : 'text-slate-300 hover:bg-slate-800/80 hover:text-white border-amber-500/20 bg-amber-500/5'
+            }`}
+          >
+            <div className="flex items-center space-x-3 truncate">
+              <BookOpen className={`w-4 h-4 shrink-0 ${activeTab === 'project_story' ? 'text-white' : 'text-amber-400'}`} />
+              <div className="text-left truncate">
+                <div className="truncate flex items-center gap-1.5 font-bold">
+                  <span>📖 História & Arquitetura</span>
+                </div>
+                <div className={`text-[10px] font-normal ${activeTab === 'project_story' ? 'text-blue-200' : 'text-slate-400'}`}>
+                  Fases, Stack & Antigravity+Gemini
+                </div>
+              </div>
+            </div>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+              activeTab === 'project_story' ? 'bg-white text-indigo-700' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+            }`}>
+              Showcase
+            </span>
+          </button>
+        </div>
       </nav>
 
       <div className="p-4 border-t border-slate-800 text-[11px] text-slate-500 bg-slate-950/50">

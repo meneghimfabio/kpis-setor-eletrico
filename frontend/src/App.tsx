@@ -12,6 +12,7 @@ import { LossesMmgd } from './pages/LossesMmgd';
 import { CustomerService } from './pages/CustomerService';
 import { FinancialProret } from './pages/FinancialProret';
 import { AlertsCenter } from './pages/AlertsCenter';
+import { ProjectStory } from './pages/ProjectStory';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('executive');
@@ -61,6 +62,7 @@ export function App() {
           {activeTab === 'atendimento' && <CustomerService />}
           {activeTab === 'financeiro_proret' && <FinancialProret />}
           {activeTab === 'alerts' && <AlertsCenter />}
+          {activeTab === 'project_story' && <ProjectStory onNavigateTab={setActiveTab} />}
         </main>
       </div>
     </div>
